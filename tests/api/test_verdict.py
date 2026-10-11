@@ -45,38 +45,38 @@ def _set_status(database_url: str, *, repo: str, pr_number: int, head_sha: str, 
         conn.commit()
 
 
-def test_verdict_unknown_when_no_session_exists(grumpy_env) -> None:
+def test_verdict_unknown_when_no_session_exists(vibecheck_env) -> None:
     repo = f"octo/unknown-{secrets.token_hex(4)}"
     with TestClient(app) as client:
         response = client.get(
             "/verdict",
             params={"repo": repo, "pr_number": 1, "head_sha": "a" * 40},
-            headers=_headers(grumpy_env.token),
+            headers=_headers(vibecheck_env.token),
         )
     assert response.status_code == 200
     assert response.json() == {"status": "UNKNOWN"}
 
 
-def test_verdict_pending_after_session_created(grumpy_env) -> None:
+def test_verdict_pending_after_session_created(vibecheck_env) -> None:
     repo = f"octo/pending-{secrets.token_hex(4)}"
     head_sha = "c" * 40
     with TestClient(app) as client:
-        created = _create_session(client, grumpy_env.token, repo=repo, pr_number=2, head_sha=head_sha)
+        created = _create_session(client, vibecheck_env.token, repo=repo, pr_number=2, head_sha=head_sha)
         assert created.status_code == 201
 
         response = client.get(
             "/verdict",
             params={"repo": repo, "pr_number": 2, "head_sha": head_sha},
-            headers=_headers(grumpy_env.token),
+            headers=_headers(vibecheck_env.token),
         )
     assert response.json() == {"status": "PENDING"}
 
 
-def test_verdict_passed_after_grading(grumpy_env, database_url: str) -> None:
+def test_verdict_passed_after_grading(vibecheck_env, database_url: str) -> None:
     repo = f"octo/passed-{secrets.token_hex(4)}"
     head_sha = "f" * 40
     with TestClient(app) as client:
-        created = _create_session(client, grumpy_env.token, repo=repo, pr_number=4, head_sha=head_sha)
+        created = _create_session(client, vibecheck_env.token, repo=repo, pr_number=4, head_sha=head_sha)
         assert created.status_code == 201
 
     _set_status(database_url, repo=repo, pr_number=4, head_sha=head_sha, status="passed")
@@ -85,16 +85,16 @@ def test_verdict_passed_after_grading(grumpy_env, database_url: str) -> None:
         response = client.get(
             "/verdict",
             params={"repo": repo, "pr_number": 4, "head_sha": head_sha},
-            headers=_headers(grumpy_env.token),
+            headers=_headers(vibecheck_env.token),
         )
     assert response.json() == {"status": "PASSED"}
 
 
-def test_verdict_failed_after_grading(grumpy_env, database_url: str) -> None:
+def test_verdict_failed_after_grading(vibecheck_env, database_url: str) -> None:
     repo = f"octo/failed-{secrets.token_hex(4)}"
     head_sha = "aa" * 20
     with TestClient(app) as client:
-        created = _create_session(client, grumpy_env.token, repo=repo, pr_number=5, head_sha=head_sha)
+        created = _create_session(client, vibecheck_env.token, repo=repo, pr_number=5, head_sha=head_sha)
         assert created.status_code == 201
 
     _set_status(database_url, repo=repo, pr_number=5, head_sha=head_sha, status="failed")
@@ -103,47 +103,47 @@ def test_verdict_failed_after_grading(grumpy_env, database_url: str) -> None:
         response = client.get(
             "/verdict",
             params={"repo": repo, "pr_number": 5, "head_sha": head_sha},
-            headers=_headers(grumpy_env.token),
+            headers=_headers(vibecheck_env.token),
         )
     assert response.json() == {"status": "FAILED"}
 
 
-def test_verdict_unknown_for_different_sha_on_same_pr(grumpy_env) -> None:
+def test_verdict_unknown_for_different_sha_on_same_pr(vibecheck_env) -> None:
     repo = f"octo/diffsha-{secrets.token_hex(4)}"
     head_sha_a = "d" * 40
     head_sha_b = "e" * 40
     with TestClient(app) as client:
-        created = _create_session(client, grumpy_env.token, repo=repo, pr_number=3, head_sha=head_sha_a)
+        created = _create_session(client, vibecheck_env.token, repo=repo, pr_number=3, head_sha=head_sha_a)
         assert created.status_code == 201
 
         response = client.get(
             "/verdict",
             params={"repo": repo, "pr_number": 3, "head_sha": head_sha_b},
-            headers=_headers(grumpy_env.token),
+            headers=_headers(vibecheck_env.token),
         )
     assert response.json() == {"status": "UNKNOWN"}
 
 
-def test_verdict_rejects_repo_not_in_allowlist(grumpy_env, monkeypatch) -> None:
+def test_verdict_rejects_repo_not_in_allowlist(vibecheck_env, monkeypatch) -> None:
     # Must be set before `with TestClient(app)`: get_settings() runs once,
     # inside the lifespan, at TestClient.__enter__().
-    monkeypatch.setenv("GRUMPY_ALLOWED_REPOS", "octo/only-allowed")
+    monkeypatch.setenv("VIBECHECK_ALLOWED_REPOS", "octo/only-allowed")
     with TestClient(app) as client:
         response = client.get(
             "/verdict",
             params={"repo": "octo/not-allowed", "pr_number": 1, "head_sha": "a" * 40},
-            headers=_headers(grumpy_env.token),
+            headers=_headers(vibecheck_env.token),
         )
     assert response.status_code == 403
 
 
-def test_verdict_allows_repo_in_allowlist(grumpy_env, monkeypatch) -> None:
-    monkeypatch.setenv("GRUMPY_ALLOWED_REPOS", "octo/only-allowed")
+def test_verdict_allows_repo_in_allowlist(vibecheck_env, monkeypatch) -> None:
+    monkeypatch.setenv("VIBECHECK_ALLOWED_REPOS", "octo/only-allowed")
     with TestClient(app) as client:
         response = client.get(
             "/verdict",
             params={"repo": "octo/only-allowed", "pr_number": 1, "head_sha": "a" * 40},
-            headers=_headers(grumpy_env.token),
+            headers=_headers(vibecheck_env.token),
         )
     assert response.status_code == 200
     assert response.json() == {"status": "UNKNOWN"}

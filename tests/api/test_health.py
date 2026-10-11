@@ -7,9 +7,9 @@ from fastapi.testclient import TestClient
 from app.main import app
 
 
-def test_healthz_returns_ok_against_real_postgres(grumpy_env) -> None:
-    # grumpy_env sets DATABASE_URL plus the other now-required settings
-    # (GRUMPY_BASE_URL, GRUMPY_TOKEN) via monkeypatch, so config succeeds.
+def test_healthz_returns_ok_against_real_postgres(vibecheck_env) -> None:
+    # vibecheck_env sets DATABASE_URL plus the other now-required settings
+    # (VIBECHECK_BASE_URL, VIBECHECK_TOKEN) via monkeypatch, so config succeeds.
     # /healthz itself needs none of them — it only proves the DB check.
 
     # TestClient used as a context manager drives the real ASGI lifespan

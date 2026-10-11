@@ -1,5 +1,5 @@
 """app/web/rendering.py's render_markdown: pure function, no DB involved —
-deliberately doesn't pull in the Testcontainers-backed grumpy_env fixture
+deliberately doesn't pull in the Testcontainers-backed vibecheck_env fixture
 chain, same reasoning as tests/test_config.py.
 
 The sanitization cases matter more than the conversion ones: this text

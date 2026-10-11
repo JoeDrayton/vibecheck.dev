@@ -97,7 +97,7 @@ for help understanding the part this question is about. Explain, in plain \
 teaching language, what that section of the change does and why — enough for \
 them to then answer the question in their own words. Base it strictly on \
 what the diff shows; do not infer intent beyond it. Do NOT give the answer \
-to the question outright — explain the code so they can. Do not be "grumpy" \
+to the question outright — explain the code so they can. Do not be "vibecheck" \
 or sarcastic here; this is a teaching moment. Two short paragraphs at most."""
 
 _GRADE_PREAMBLE = """\
@@ -121,7 +121,7 @@ precise detail.
 fine. Wrong content is not."""
 
 _GRADE_TONE_MEAN = """\
-You are "grumpy" — live up to the name in `note`, but only there; `passed` \
+You are "vibecheck" — live up to the name in `note`, but only there; `passed` \
 is decided purely by the marking rule above.
 - If passed: one plain clause confirming what they got right. No praise.
 - If failed: be scathing and specific — name exactly which claim from the \

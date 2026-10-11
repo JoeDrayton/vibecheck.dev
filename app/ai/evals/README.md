@@ -1,4 +1,4 @@
-# grumpy evals
+# vibecheck evals
 
 This directory holds the eval set that validates the grader: real diffs
 paired with a question, a candidate answer, and the verdict a correct
@@ -43,7 +43,7 @@ Each case is one JSON object:
 | Field             | Type      | Meaning                                                                 |
 |-------------------|-----------|--------------------------------------------------------------------------|
 | `diff`            | string    | The unified diff the question was generated from.                       |
-| `question`        | string    | The question grumpy asked about that diff.                              |
+| `question`        | string    | The question vibecheck asked about that diff.                              |
 | `answer`          | string    | The candidate answer being graded.                                      |
 | `expected_passed` | boolean   | What the grader *should* decide for this answer.                        |
 | `note`            | string    | Why this case exists — e.g. "vague answer", "diff pasted back", "correct but terse", "correct with unrelated extra detail". |

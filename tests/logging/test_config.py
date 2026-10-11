@@ -3,7 +3,7 @@
 The token in `/s/{token}` is the credential for the answer page, so a log
 line carrying the raw request path carries a bearer-equivalent secret.
 README's deploy checklist tells self-hosters to redact this in their
-reverse proxy; these tests hold grumpy to the same standard for its own
+reverse proxy; these tests hold vibecheck to the same standard for its own
 stdout.
 """
 
@@ -52,9 +52,9 @@ def test_uvicorn_access_logger_is_disabled() -> None:
     assert access_logger.propagate is False
 
 
-def test_request_log_line_does_not_contain_the_token(grumpy_env) -> None:
+def test_request_log_line_does_not_contain_the_token(vibecheck_env) -> None:
     """End to end through the app: drive a request at a /s/{token} URL and
-    assert the token appears nowhere in what grumpy actually emitted.
+    assert the token appears nowhere in what vibecheck actually emitted.
 
     Not pytest's caplog: configure_logging() replaces root.handlers, which
     removes caplog's own handler, so caplog captures nothing here and every
@@ -84,8 +84,8 @@ def test_request_log_line_does_not_contain_the_token(grumpy_env) -> None:
 
     logged = "\n".join(emitted)
     assert logged, "captured no log output — the assertions below would be vacuous"
-    # Every record, not just grumpy.request: the point is that nothing
-    # grumpy configures emits the token, including third-party loggers that
+    # Every record, not just vibecheck.request: the point is that nothing
+    # vibecheck configures emits the token, including third-party loggers that
     # inherit the root handler (httpx did, until it was quieted).
     assert _TOKEN not in logged, "session token leaked into the logs"
     assert "/s/<redacted>" in logged

@@ -32,16 +32,16 @@ COPY migrations ./migrations
 # ---- runtime ----
 FROM python:3.14-slim AS runtime
 
-RUN groupadd --system grumpy && useradd --system --gid grumpy --home /app grumpy
+RUN groupadd --system vibecheck && useradd --system --gid vibecheck --home /app vibecheck
 
 WORKDIR /app
 
-COPY --from=builder --chown=grumpy:grumpy /app /app
+COPY --from=builder --chown=vibecheck:vibecheck /app /app
 
 ENV PATH="/app/.venv/bin:${PATH}" \
     PYTHONUNBUFFERED=1
 
-USER grumpy
+USER vibecheck
 
 EXPOSE 8000
 

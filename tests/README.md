@@ -19,6 +19,6 @@ When you add a module under `app/`, add its test file at the mirrored path. When
 - Start each file with `from __future__ import annotations`, and annotate test functions `-> None`.
 - Test names say the behaviour, not the function: `test_v10_sorts_after_v9_not_after_v1`, not `test_version_key`.
 - One behaviour per test. Prefer several small tests over one with many asserts.
-- Pure functions get pure tests: no `grumpy_env`, no database. Only pull in `grumpy_env` (a real Postgres via Testcontainers) when the test needs the app or the database.
+- Pure functions get pure tests: no `vibecheck_env`, no database. Only pull in `vibecheck_env` (a real Postgres via Testcontainers) when the test needs the app or the database.
 - Use a real Postgres, not mocks, for anything that touches SQL. The fake grader (`FAKE_GRADER=true`, passes answers containing `looks-good`) stands in for the model; tests never call the real API.
 - Never log or assert on a real secret; generate tokens with `secrets.token_urlsafe`.

@@ -7,6 +7,7 @@ import re
 from pathlib import Path
 
 from pydantic import (
+    AliasChoices,
     BaseModel,
     ConfigDict,
     Field,
@@ -20,10 +21,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 DEFAULT_MIGRATIONS_DIR = Path(__file__).resolve().parent.parent / "migrations"
 
 # The .env.example placeholder; public, so deploying with it is an auth bypass.
-_PLACEHOLDER_GRUMPY_TOKENS = frozenset({"changeme-generate-a-real-token"})
+_PLACEHOLDER_VIBECHECK_TOKENS = frozenset({"changeme-generate-a-real-token"})
 
 # token_urlsafe(16), the recommended minimum, is 22 characters.
-MIN_GRUMPY_TOKEN_LENGTH = 20
+MIN_VIBECHECK_TOKEN_LENGTH = 20
 
 # Mirrors app.schemas._REPO_RE; duplicated so config imports nothing from app.
 _REPO_SHAPE_RE = re.compile(r"^[^/\s]+/[^/\s]+$")
@@ -82,19 +83,27 @@ class Settings(BaseSettings):
         description="Postgres DSN, e.g. postgresql://user:pass@host:5432/db",
     )
 
+    # The GRUMPY_* names are the project's old name (it was "grumpy" before
+    # "vibecheck"). They are still read as a fallback so an existing
+    # deployment keeps booting after the rename; the VIBECHECK_* name wins
+    # when both are set. Drop the fallbacks once deployments have moved.
+
     # Never derive this from the Host header; behind a proxy it would be internal.
-    grumpy_base_url: str = Field(
+    vibecheck_base_url: str = Field(
         ...,
-        description="Public base URL used to build session URLs, e.g. https://grumpy.example.com",
+        validation_alias=AliasChoices("vibecheck_base_url", "grumpy_base_url"),
+        description="Public base URL used to build session URLs, e.g. https://vibecheck.example.com",
     )
 
-    grumpy_token: SecretStr = Field(
+    vibecheck_token: SecretStr = Field(
         ...,
+        validation_alias=AliasChoices("vibecheck_token", "grumpy_token"),
         description="Shared bearer token required on /sessions and /verdict",
     )
 
-    grumpy_allowed_repos: str | None = Field(
+    vibecheck_allowed_repos: str | None = Field(
         default=None,
+        validation_alias=AliasChoices("vibecheck_allowed_repos", "grumpy_allowed_repos"),
         description=(
             "Optional comma-separated allow-list of repos ('owner/name') "
             "permitted to use this deployment's /sessions and /verdict, "
@@ -144,7 +153,7 @@ class Settings(BaseSettings):
     # deployment opts in.
     allow_restart: bool = False
 
-    # Sarcastic "grumpy" tone for failed marks; off gives a professional tone.
+    # Sarcastic "vibecheck" tone for failed marks; off gives a professional tone.
     meaniemode: bool = False
 
     # JSON, e.g. '{"size": {"max_changed_lines": 1000}}'. Kept as a raw string
@@ -158,20 +167,20 @@ class Settings(BaseSettings):
     fake_grader: bool = Field(...)
     model_api_key: SecretStr | None = None
 
-    @field_validator("grumpy_token")
+    @field_validator("vibecheck_token")
     @classmethod
     def _reject_weak_token(cls, value: SecretStr) -> SecretStr:
         token = value.get_secret_value()
-        if token in _PLACEHOLDER_GRUMPY_TOKENS:
+        if token in _PLACEHOLDER_VIBECHECK_TOKENS:
             raise ValueError(
-                "GRUMPY_TOKEN is still the .env.example placeholder value — "
+                "VIBECHECK_TOKEN is still the .env.example placeholder value — "
                 'generate a real one, e.g.: python -c "import secrets; '
                 'print(secrets.token_urlsafe(32))"'
             )
-        if len(token) < MIN_GRUMPY_TOKEN_LENGTH:
+        if len(token) < MIN_VIBECHECK_TOKEN_LENGTH:
             raise ValueError(
-                f"GRUMPY_TOKEN is too short ({len(token)} chars, need at "
-                f"least {MIN_GRUMPY_TOKEN_LENGTH}) — generate a real one, "
+                f"VIBECHECK_TOKEN is too short ({len(token)} chars, need at "
+                f"least {MIN_VIBECHECK_TOKEN_LENGTH}) — generate a real one, "
                 'e.g.: python -c "import secrets; '
                 'print(secrets.token_urlsafe(32))"'
             )
@@ -187,12 +196,12 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _validate_allowed_repos(self) -> Settings:
-        repos = _parse_allowed_repos(self.grumpy_allowed_repos)
+        repos = _parse_allowed_repos(self.vibecheck_allowed_repos)
         if repos is not None:
             bad = sorted(r for r in repos if not _REPO_SHAPE_RE.match(r))
             if bad:
                 raise ValueError(
-                    "GRUMPY_ALLOWED_REPOS contains invalid entries (must be "
+                    "VIBECHECK_ALLOWED_REPOS contains invalid entries (must be "
                     f"'owner/name'): {', '.join(bad)}"
                 )
         return self
@@ -239,7 +248,7 @@ class Settings(BaseSettings):
 
     def is_repo_allowed(self, repo: str) -> bool:
         """True if `repo` may use this deployment."""
-        allowed = _parse_allowed_repos(self.grumpy_allowed_repos)
+        allowed = _parse_allowed_repos(self.vibecheck_allowed_repos)
         return allowed is None or repo in allowed
 
     def evaluator_config(self) -> EvaluatorConfig:
@@ -264,7 +273,7 @@ def get_settings() -> Settings:
         ]
         if missing:
             raise SystemExit(
-                "grumpy: missing required environment variable(s): "
+                "vibecheck: missing required environment variable(s): "
                 + ", ".join(missing)
             ) from exc
-        raise SystemExit(f"grumpy: invalid configuration: {exc}") from exc
+        raise SystemExit(f"vibecheck: invalid configuration: {exc}") from exc

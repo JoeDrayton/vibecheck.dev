@@ -11,7 +11,7 @@ from pathlib import Path
 
 import psycopg
 
-logger = logging.getLogger("grumpy.migrations")
+logger = logging.getLogger("vibecheck.migrations")
 
 _VERSION_RE = re.compile(r"^V(\d+)__")
 

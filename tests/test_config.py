@@ -1,6 +1,6 @@
-"""Settings validation: GRUMPY_TOKEN strength and the GRUMPY_ALLOWED_REPOS
+"""Settings validation: VIBECHECK_TOKEN strength and the VIBECHECK_ALLOWED_REPOS
 allow-list. Pure pydantic validation, no DB involved — deliberately doesn't
-pull in the Testcontainers-backed grumpy_env fixture chain, since none of
+pull in the Testcontainers-backed vibecheck_env fixture chain, since none of
 this needs a real Postgres.
 """
 
@@ -16,8 +16,8 @@ from app.config import Settings, get_settings
 
 def _set_required_env(monkeypatch: pytest.MonkeyPatch, *, token: str) -> None:
     monkeypatch.setenv("DATABASE_URL", "postgresql://u:p@localhost:5432/db")
-    monkeypatch.setenv("GRUMPY_BASE_URL", "https://grumpy.example.com")
-    monkeypatch.setenv("GRUMPY_TOKEN", token)
+    monkeypatch.setenv("VIBECHECK_BASE_URL", "https://vibecheck.example.com")
+    monkeypatch.setenv("VIBECHECK_TOKEN", token)
     monkeypatch.setenv("FAKE_GRADER", "true")
 
 
@@ -34,7 +34,7 @@ def test_short_token_is_rejected(monkeypatch) -> None:
 
 
 def test_generated_token_is_accepted(monkeypatch) -> None:
-    # Mirrors tests/conftest.py's grumpy_env fixture generation — a
+    # Mirrors tests/conftest.py's vibecheck_env fixture generation — a
     # regression proof that the new length floor doesn't break it.
     _set_required_env(monkeypatch, token=secrets.token_urlsafe(16))
     Settings()
@@ -42,7 +42,7 @@ def test_generated_token_is_accepted(monkeypatch) -> None:
 
 def test_get_settings_wraps_weak_token_as_system_exit(monkeypatch) -> None:
     _set_required_env(monkeypatch, token="too-short")
-    with pytest.raises(SystemExit, match="GRUMPY_TOKEN"):
+    with pytest.raises(SystemExit, match="VIBECHECK_TOKEN"):
         get_settings()
 
 
@@ -92,14 +92,14 @@ def test_allowed_repos_unset_permits_any_repo(monkeypatch) -> None:
 @pytest.mark.parametrize("raw", ["", "  ", ",", " , , "])
 def test_allowed_repos_blank_string_permits_any_repo(monkeypatch, raw) -> None:
     _set_required_env(monkeypatch, token=secrets.token_urlsafe(16))
-    monkeypatch.setenv("GRUMPY_ALLOWED_REPOS", raw)
+    monkeypatch.setenv("VIBECHECK_ALLOWED_REPOS", raw)
     settings = Settings()
     assert settings.is_repo_allowed("anything/at-all")
 
 
 def test_allowed_repos_permits_listed_repos(monkeypatch) -> None:
     _set_required_env(monkeypatch, token=secrets.token_urlsafe(16))
-    monkeypatch.setenv("GRUMPY_ALLOWED_REPOS", "octo/repo-a,octo/repo-b")
+    monkeypatch.setenv("VIBECHECK_ALLOWED_REPOS", "octo/repo-a,octo/repo-b")
     settings = Settings()
     assert settings.is_repo_allowed("octo/repo-a")
     assert settings.is_repo_allowed("octo/repo-b")
@@ -107,14 +107,14 @@ def test_allowed_repos_permits_listed_repos(monkeypatch) -> None:
 
 def test_allowed_repos_rejects_unlisted_repo(monkeypatch) -> None:
     _set_required_env(monkeypatch, token=secrets.token_urlsafe(16))
-    monkeypatch.setenv("GRUMPY_ALLOWED_REPOS", "octo/repo-a,octo/repo-b")
+    monkeypatch.setenv("VIBECHECK_ALLOWED_REPOS", "octo/repo-a,octo/repo-b")
     settings = Settings()
     assert not settings.is_repo_allowed("evil/other")
 
 
 def test_allowed_repos_trims_whitespace_around_entries(monkeypatch) -> None:
     _set_required_env(monkeypatch, token=secrets.token_urlsafe(16))
-    monkeypatch.setenv("GRUMPY_ALLOWED_REPOS", " octo/repo-a , octo/repo-b ")
+    monkeypatch.setenv("VIBECHECK_ALLOWED_REPOS", " octo/repo-a , octo/repo-b ")
     settings = Settings()
     assert settings.is_repo_allowed("octo/repo-a")
     assert settings.is_repo_allowed("octo/repo-b")
@@ -122,7 +122,7 @@ def test_allowed_repos_trims_whitespace_around_entries(monkeypatch) -> None:
 
 def test_allowed_repos_rejects_malformed_entry(monkeypatch) -> None:
     _set_required_env(monkeypatch, token=secrets.token_urlsafe(16))
-    monkeypatch.setenv("GRUMPY_ALLOWED_REPOS", "not-a-valid-repo")
+    monkeypatch.setenv("VIBECHECK_ALLOWED_REPOS", "not-a-valid-repo")
     with pytest.raises(ValidationError, match="not-a-valid-repo"):
         Settings()
 
@@ -253,4 +253,48 @@ def test_evaluator_rejects_invalid_config(monkeypatch, raw) -> None:
     _set_required_env(monkeypatch, token=secrets.token_urlsafe(16))
     monkeypatch.setenv("EVALUATOR", raw)
     with pytest.raises(SystemExit, match="EVALUATOR is invalid"):
+        get_settings()
+
+
+def _legacy_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("DATABASE_URL", "postgresql://u:p@localhost:5432/db")
+    monkeypatch.setenv("FAKE_GRADER", "true")
+    for name in ("BASE_URL", "TOKEN", "ALLOWED_REPOS"):
+        monkeypatch.delenv(f"VIBECHECK_{name}", raising=False)
+
+
+def test_old_grumpy_env_names_still_configure_the_server(monkeypatch) -> None:
+    _legacy_env(monkeypatch)
+    token = secrets.token_urlsafe(16)
+    monkeypatch.setenv("GRUMPY_BASE_URL", "https://old.example.com")
+    monkeypatch.setenv("GRUMPY_TOKEN", token)
+    monkeypatch.setenv("GRUMPY_ALLOWED_REPOS", "octo/repo")
+
+    settings = Settings()
+
+    assert settings.vibecheck_base_url == "https://old.example.com"
+    assert settings.vibecheck_token.get_secret_value() == token
+    assert settings.is_repo_allowed("octo/repo")
+    assert not settings.is_repo_allowed("octo/other")
+
+
+def test_vibecheck_env_names_win_over_the_old_ones(monkeypatch) -> None:
+    _legacy_env(monkeypatch)
+    new_token = secrets.token_urlsafe(16)
+    monkeypatch.setenv("GRUMPY_BASE_URL", "https://old.example.com")
+    monkeypatch.setenv("GRUMPY_TOKEN", secrets.token_urlsafe(16))
+    monkeypatch.setenv("VIBECHECK_BASE_URL", "https://new.example.com")
+    monkeypatch.setenv("VIBECHECK_TOKEN", new_token)
+
+    settings = Settings()
+
+    assert settings.vibecheck_base_url == "https://new.example.com"
+    assert settings.vibecheck_token.get_secret_value() == new_token
+
+
+def test_missing_token_is_reported_under_the_new_name(monkeypatch) -> None:
+    _legacy_env(monkeypatch)
+    monkeypatch.setenv("VIBECHECK_BASE_URL", "https://new.example.com")
+
+    with pytest.raises(SystemExit, match="VIBECHECK_TOKEN"):
         get_settings()

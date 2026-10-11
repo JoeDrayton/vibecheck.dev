@@ -1,7 +1,7 @@
 name: ci
 
-# The repo's own test suite. Distinct from .github/workflows/grumpy.yml,
-# which is the merge gate grumpy applies to *humans* — that one asks the
+# The repo's own test suite. Distinct from .github/workflows/vibecheck.yml,
+# which is the merge gate vibecheck applies to *humans* — that one asks the
 # author a question and has nothing to do with whether the code works.
 on:
   push:
@@ -46,4 +46,4 @@ jobs:
       # The README's very first instruction is `docker compose up --build`.
       # Proving the image still builds keeps that from rotting unnoticed.
       - name: Build the image
-        run: docker build -t grumpy:ci .
+        run: docker build -t vibecheck:ci .

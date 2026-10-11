@@ -31,6 +31,6 @@ async def require_bearer_token(
     settings = request.app.state.settings
     provided = _extract_bearer_token(authorization)
     if provided is None or not secrets.compare_digest(
-        provided, settings.grumpy_token.get_secret_value()
+        provided, settings.vibecheck_token.get_secret_value()
     ):
         raise _UNAUTHORIZED

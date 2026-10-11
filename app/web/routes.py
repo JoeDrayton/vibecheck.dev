@@ -25,7 +25,7 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 templates.env.filters["markdown"] = render_markdown
 
 router = APIRouter()
-logger = logging.getLogger("grumpy.web")
+logger = logging.getLogger("vibecheck.web")
 
 # (session id, question index) pairs with a model call in flight. A second
 # request for the same screen bounces instead of paying for a duplicate call.
@@ -330,7 +330,7 @@ async def submit_answer(request: Request, token: str) -> HTMLResponse:
             repo=session["repo"],
             head_sha=session["head_sha"],
             status=status,
-            target_url=build_session_url(settings.grumpy_base_url, token),
+            target_url=build_session_url(settings.vibecheck_base_url, token),
         )
 
     # Post/redirect/get back to this screen.
@@ -456,7 +456,7 @@ async def restart_walkthrough(request: Request, token: str) -> HTMLResponse:
             repo=session["repo"],
             head_sha=session["head_sha"],
             status="pending",
-            target_url=build_session_url(settings.grumpy_base_url, token),
+            target_url=build_session_url(settings.vibecheck_base_url, token),
         )
     return RedirectResponse(url=f"/s/{token}", status_code=303)
 
@@ -498,7 +498,7 @@ async def skip_current_question(request: Request, token: str) -> HTMLResponse:
             repo=session["repo"],
             head_sha=session["head_sha"],
             status=status,
-            target_url=build_session_url(settings.grumpy_base_url, token),
+            target_url=build_session_url(settings.vibecheck_base_url, token),
         )
 
     return RedirectResponse(url=f"/s/{token}?step={index}", status_code=303)

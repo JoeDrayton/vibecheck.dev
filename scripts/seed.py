@@ -46,7 +46,7 @@ async def main() -> None:
     finally:
         await pool.close()
 
-    url = f"{settings.grumpy_base_url.rstrip('/')}/s/{row['token']}"
+    url = f"{settings.vibecheck_base_url.rstrip('/')}/s/{row['token']}"
     print(f"Seeded session for {REPO}#{PR_NUMBER}")
     print(url)
 
