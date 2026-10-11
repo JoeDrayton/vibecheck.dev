@@ -1,6 +1,8 @@
 # vibecheck - the AI that vibe checks your PRs
 
-https://github.com/user-attachments/assets/9d8c28a7-a025-4d69-854c-651698859e1a
+
+https://github.com/user-attachments/assets/497f427e-182e-4446-ac0c-ed6f1ad8ea28
+
 
 **Vibecheck is a merge gate that checks the author of the PR understands the change they are putting in.**
 
