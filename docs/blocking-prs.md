@@ -2,9 +2,6 @@
 
 By default vibecheck is advisory: the `grill` job comments a question link and passes. To make the answer gate merging, vibecheck has to report a `vibecheck/verdict` commit status, and GitHub has to require it. This page walks the whole path, in order.
 
-!!! note "Renamed from `grumpy/verdict`"
-    The status used to be called `grumpy/verdict`. The server still posts both for now, so a rule that requires the old name keeps working, but switch it to `vibecheck/verdict`: the old one will be dropped in a later release.
-
 ## What you need
 
 - A running vibecheck server that GitHub's runners can reach (see [Deploying to Railway](deploy-railway.md)).
