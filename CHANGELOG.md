@@ -11,10 +11,10 @@
     read as a fallback, and the new name wins if both are set. The same goes
     for the `GRUMPY_*` repository secrets in the workflow. Move to the new
     names at your leisure; the fallbacks will be removed in a later release.
-  - The commit status is now `vibecheck/verdict`. The server still posts
-    `grumpy/verdict` alongside it, so a branch protection rule that requires
-    the old name keeps working. Switch the rule to `vibecheck/verdict`, then
-    the old status will be dropped.
+  - The commit status is now `vibecheck/verdict`. The old `grumpy/verdict`
+    is no longer posted, so a branch protection rule or ruleset that
+    requires the old name will wait forever. Switch it to
+    `vibecheck/verdict` before upgrading.
   - The workflow file is `.github/workflows/vibecheck.yml`. The `ask`/`grill`
     job name is unchanged.
   - The default local Postgres user, password, database and volume are now

@@ -16,12 +16,7 @@ from fastapi.testclient import TestClient
 
 from app.db.exam import record_attempt
 from app.db.sessions import fetch_session_by_token
-from app.github.commit_status import (
-    CONTEXT,
-    LEGACY_CONTEXTS,
-    GitHubStatusPublisher,
-    NullStatusPublisher,
-)
+from app.github.commit_status import CONTEXT, GitHubStatusPublisher, NullStatusPublisher
 from app.main import app
 
 _SHA = "a" * 40
@@ -53,29 +48,15 @@ def test_posts_the_mapped_state_to_the_head_commit(status: str, state: str) -> N
 
     _publish(_publisher(handler), status)
 
-    # One post under the current context, then one per legacy context.
-    assert len(requests) == 1 + len(LEGACY_CONTEXTS)
-    for request in requests:
-        assert request.method == "POST"
-        assert str(request.url) == f"https://api.github.com/repos/octo/repo/statuses/{_SHA}"
-        assert request.headers["Authorization"] == "Bearer gh-token"
-        body = json.loads(request.content)
-        assert body["state"] == state
-        assert body["target_url"] == _SESSION_URL
-        assert 0 < len(body["description"]) <= 140
-    assert [json.loads(r.content)["context"] for r in requests] == [CONTEXT, *LEGACY_CONTEXTS]
-
-
-def test_status_is_also_posted_under_the_old_grumpy_name() -> None:
-    contexts: list[str] = []
-
-    def handler(request: httpx.Request) -> httpx.Response:
-        contexts.append(json.loads(request.content)["context"])
-        return httpx.Response(201, json={})
-
-    _publish(_publisher(handler), "passed")
-
-    assert contexts == ["vibecheck/verdict", "grumpy/verdict"]
+    (request,) = requests
+    assert request.method == "POST"
+    assert str(request.url) == f"https://api.github.com/repos/octo/repo/statuses/{_SHA}"
+    assert request.headers["Authorization"] == "Bearer gh-token"
+    body = json.loads(request.content)
+    assert body["state"] == state
+    assert body["context"] == CONTEXT == "vibecheck/verdict"
+    assert body["target_url"] == _SESSION_URL
+    assert 0 < len(body["description"]) <= 140
 
 
 def test_enterprise_api_url_is_honoured_with_or_without_trailing_slash() -> None:
@@ -87,8 +68,7 @@ def test_enterprise_api_url_is_honoured_with_or_without_trailing_slash() -> None
 
     _publish(_publisher(handler, api_url="https://ghe.example.com/api/v3/"), "pending")
 
-    expected = f"https://ghe.example.com/api/v3/repos/octo/repo/statuses/{_SHA}"
-    assert urls == [expected] * (1 + len(LEGACY_CONTEXTS))
+    assert urls == [f"https://ghe.example.com/api/v3/repos/octo/repo/statuses/{_SHA}"]
 
 
 def test_github_rejecting_the_status_is_logged_not_raised(caplog) -> None:

@@ -22,11 +22,6 @@ logger = logging.getLogger("vibecheck.commit_status")
 
 CONTEXT = "vibecheck/verdict"
 
-# The context this check was posted under before the rename. Posted alongside
-# CONTEXT so a repo whose branch protection still requires `grumpy/verdict`
-# is not left waiting forever. Drop once those repos have switched.
-LEGACY_CONTEXTS = ("grumpy/verdict",)
-
 # sessions.status -> (GitHub status state, description). GitHub truncates
 # descriptions past 140 characters.
 _STATES = {
@@ -67,22 +62,21 @@ class GitHubStatusPublisher:
         log_extra = {"repo": repo, "head_sha": head_sha[:7]}
         try:
             async with self._client_factory() as client:
-                for context in (CONTEXT, *LEGACY_CONTEXTS):
-                    response = await client.post(
-                        f"{self._api_url}/repos/{repo}/statuses/{head_sha}",
-                        headers={
-                            "Authorization": f"Bearer {self._token}",
-                            "Accept": "application/vnd.github+json",
-                            "X-GitHub-Api-Version": "2022-11-28",
-                        },
-                        json={
-                            "state": state,
-                            "target_url": target_url,
-                            "description": description,
-                            "context": context,
-                        },
-                    )
-                    response.raise_for_status()
+                response = await client.post(
+                    f"{self._api_url}/repos/{repo}/statuses/{head_sha}",
+                    headers={
+                        "Authorization": f"Bearer {self._token}",
+                        "Accept": "application/vnd.github+json",
+                        "X-GitHub-Api-Version": "2022-11-28",
+                    },
+                    json={
+                        "state": state,
+                        "target_url": target_url,
+                        "description": description,
+                        "context": CONTEXT,
+                    },
+                )
+                response.raise_for_status()
         except httpx.HTTPStatusError as exc:
             # 404 usually means the token cannot see the repo; 403 that it lacks
             # "Commit statuses: write".
