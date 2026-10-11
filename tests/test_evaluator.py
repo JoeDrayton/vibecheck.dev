@@ -28,8 +28,8 @@ def _file(path: str, added: int, removed: int = 0, context: int = 0) -> str:
 @pytest.fixture
 def settings(monkeypatch) -> Settings:
     monkeypatch.setenv("DATABASE_URL", "postgresql://u:p@localhost:5432/db")
-    monkeypatch.setenv("GRUMPY_BASE_URL", "https://grumpy.example.com")
-    monkeypatch.setenv("GRUMPY_TOKEN", secrets.token_urlsafe(16))
+    monkeypatch.setenv("VIBECHECK_BASE_URL", "https://vibecheck.example.com")
+    monkeypatch.setenv("VIBECHECK_TOKEN", secrets.token_urlsafe(16))
     monkeypatch.setenv("FAKE_GRADER", "true")
     return Settings()
 

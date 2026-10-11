@@ -1,4 +1,4 @@
-"""Reports a session's verdict to GitHub as a `grumpy/verdict` commit status.
+"""Reports a session's verdict to GitHub as a `vibecheck/verdict` commit status.
 
 Unlike an Action job, which can only end green or red, a commit status can
 stay pending for as long as the human takes to answer. Posted as `pending` on
@@ -18,15 +18,20 @@ from typing import Protocol
 
 import httpx
 
-logger = logging.getLogger("grumpy.commit_status")
+logger = logging.getLogger("vibecheck.commit_status")
 
-CONTEXT = "grumpy/verdict"
+CONTEXT = "vibecheck/verdict"
+
+# The context this check was posted under before the rename. Posted alongside
+# CONTEXT so a repo whose branch protection still requires `grumpy/verdict`
+# is not left waiting forever. Drop once those repos have switched.
+LEGACY_CONTEXTS = ("grumpy/verdict",)
 
 # sessions.status -> (GitHub status state, description). GitHub truncates
 # descriptions past 140 characters.
 _STATES = {
-    "pending": ("pending", "Waiting for the PR author to answer grumpy's question"),
-    "passed": ("success", "The PR author answered grumpy's question"),
+    "pending": ("pending", "Waiting for the PR author to answer vibecheck's question"),
+    "passed": ("success", "The PR author answered vibecheck's question"),
     "failed": ("failure", "Out of attempts without a passing answer"),
 }
 
@@ -36,7 +41,7 @@ class StatusPublisher(Protocol):
 
 
 class NullStatusPublisher:
-    """GITHUB_STATUS_TOKEN unset: grumpy reports nothing to GitHub."""
+    """GITHUB_STATUS_TOKEN unset: vibecheck reports nothing to GitHub."""
 
     async def publish(self, *, repo: str, head_sha: str, status: str, target_url: str) -> None:
         return None
@@ -62,21 +67,22 @@ class GitHubStatusPublisher:
         log_extra = {"repo": repo, "head_sha": head_sha[:7]}
         try:
             async with self._client_factory() as client:
-                response = await client.post(
-                    f"{self._api_url}/repos/{repo}/statuses/{head_sha}",
-                    headers={
-                        "Authorization": f"Bearer {self._token}",
-                        "Accept": "application/vnd.github+json",
-                        "X-GitHub-Api-Version": "2022-11-28",
-                    },
-                    json={
-                        "state": state,
-                        "target_url": target_url,
-                        "description": description,
-                        "context": CONTEXT,
-                    },
-                )
-                response.raise_for_status()
+                for context in (CONTEXT, *LEGACY_CONTEXTS):
+                    response = await client.post(
+                        f"{self._api_url}/repos/{repo}/statuses/{head_sha}",
+                        headers={
+                            "Authorization": f"Bearer {self._token}",
+                            "Accept": "application/vnd.github+json",
+                            "X-GitHub-Api-Version": "2022-11-28",
+                        },
+                        json={
+                            "state": state,
+                            "target_url": target_url,
+                            "description": description,
+                            "context": context,
+                        },
+                    )
+                    response.raise_for_status()
         except httpx.HTTPStatusError as exc:
             # 404 usually means the token cannot see the repo; 403 that it lacks
             # "Commit statuses: write".

@@ -17,13 +17,13 @@ def _query() -> dict:
     return {"repo": "octo/repo", "pr_number": 1, "head_sha": "a" * 40}
 
 
-def test_missing_token_returns_401(grumpy_env) -> None:
+def test_missing_token_returns_401(vibecheck_env) -> None:
     with TestClient(app) as client:
         response = client.get("/verdict", params=_query())
     assert response.status_code == 401
 
 
-def test_malformed_header_returns_401(grumpy_env) -> None:
+def test_malformed_header_returns_401(vibecheck_env) -> None:
     with TestClient(app) as client:
         response = client.get(
             "/verdict", params=_query(), headers={"Authorization": "Basic abc123"}
@@ -31,7 +31,7 @@ def test_malformed_header_returns_401(grumpy_env) -> None:
     assert response.status_code == 401
 
 
-def test_wrong_token_returns_401(grumpy_env) -> None:
+def test_wrong_token_returns_401(vibecheck_env) -> None:
     with TestClient(app) as client:
         response = client.get(
             "/verdict", params=_query(), headers={"Authorization": "Bearer wrong-token"}
@@ -39,18 +39,18 @@ def test_wrong_token_returns_401(grumpy_env) -> None:
     assert response.status_code == 401
 
 
-def test_correct_token_is_accepted(grumpy_env) -> None:
+def test_correct_token_is_accepted(vibecheck_env) -> None:
     with TestClient(app) as client:
         response = client.get(
             "/verdict",
             params=_query(),
-            headers={"Authorization": f"Bearer {grumpy_env.token}"},
+            headers={"Authorization": f"Bearer {vibecheck_env.token}"},
         )
     assert response.status_code == 200
     assert response.json() == {"status": "UNKNOWN"}
 
 
-def test_all_401_responses_have_the_same_body(grumpy_env) -> None:
+def test_all_401_responses_have_the_same_body(vibecheck_env) -> None:
     with TestClient(app) as client:
         missing = client.get("/verdict", params=_query())
         malformed = client.get(

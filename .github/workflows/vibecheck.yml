@@ -1,19 +1,19 @@
-name: grumpy
+name: vibecheck
 
 # Merge gate: asks whoever opened/updated the PR a question about their own
 # diff. See README for the phase breakdown; this workflow is the "Action"
 # side of the Action-facing API (POST /sessions).
 #
-# The gate is not this job. It's the `grumpy/verdict` commit status, which
-# the grumpy server posts on the PR's head commit — pending as soon as the
+# The gate is not this job. It's the `vibecheck/verdict` commit status, which
+# the vibecheck server posts on the PR's head commit — pending as soon as the
 # session exists, success or failure the moment the answer is graded (needs
 # GITHUB_STATUS_TOKEN on the server; see INTEGRATION.md). Make that the
 # required check. This job only opens the session and links it on the PR,
 # so it finishes in seconds. It goes red for exactly one reason: the server
 # rejected the PR itself before asking anything (the EVALUATOR checks, e.g.
 # too many changed lines), which it explains in a PR comment. Anything else
-# (grumpy unreachable, a bad request) is a warning and still passes. A
-# grumpy outage should not read as "your PR is broken".
+# (vibecheck unreachable, a bad request) is a warning and still passes. A
+# vibecheck outage should not read as "your PR is broken".
 #
 # It used to wait for the answer here instead: poll GET /verdict for ten
 # minutes, then fail on whatever it last saw. Authors rarely answer inside
@@ -21,8 +21,8 @@ name: grumpy
 # after the polling loop finished — so the check was red on nearly every
 # PR, and held a runner for ten minutes getting there.
 #
-# Runs on a GitHub-hosted runner — grumpy is hosted publicly (see the
-# GRUMPY_BASE_URL secret), so any ubuntu-latest runner can reach it.
+# Runs on a GitHub-hosted runner — vibecheck is hosted publicly (see the
+# VIBECHECK_BASE_URL secret), so any ubuntu-latest runner can reach it.
 on:
   pull_request:
     types: [opened, synchronize, reopened]
@@ -32,10 +32,10 @@ permissions:
   pull-requests: write
 
 jobs:
-  # Not named `grumpy`, which is what the old blocking job was called: a
+  # Not named `vibecheck`, which is what the old blocking job was called: a
   # repo whose branch protection still requires that check then blocks
   # merges ("Expected — waiting for status") until it's pointed at
-  # `grumpy/verdict`, rather than quietly letting PRs through ungated.
+  # `vibecheck/verdict`, rather than quietly letting PRs through ungated.
   # Was `ask` until it became non-blocking; the same reasoning applies to a
   # protection rule still requiring `ask`.
   grill:
@@ -56,18 +56,18 @@ jobs:
       # untrusted head code, a well-known privilege-escalation footgun. A
       # maintainer who wants fork PRs gated should run the gate after
       # merging to a trusted branch. A skipped fork PR never gets a
-      # `grumpy/verdict` status, so if that's a required check, merging one
+      # `vibecheck/verdict` status, so if that's a required check, merging one
       # takes a maintainer bypassing the requirement.
-      - name: Check grumpy is configured for this run
+      - name: Check vibecheck is configured for this run
         id: config
         env:
-          GRUMPY_BASE_URL: ${{ secrets.GRUMPY_BASE_URL }}
-          GRUMPY_TOKEN: ${{ secrets.GRUMPY_TOKEN }}
+          VIBECHECK_BASE_URL: ${{ secrets.VIBECHECK_BASE_URL || secrets.GRUMPY_BASE_URL }}
+          VIBECHECK_TOKEN: ${{ secrets.VIBECHECK_TOKEN || secrets.GRUMPY_TOKEN }}
           IS_FORK: ${{ github.event.pull_request.head.repo.fork }}
         run: |
           set -euo pipefail
 
-          if [ -n "$GRUMPY_BASE_URL" ] && [ -n "$GRUMPY_TOKEN" ]; then
+          if [ -n "$VIBECHECK_BASE_URL" ] && [ -n "$VIBECHECK_TOKEN" ]; then
             echo "configured=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -77,22 +77,22 @@ jobs:
           if [ "$IS_FORK" = "true" ]; then
             reason="this PR is from a fork, and GitHub does not share repository secrets with fork PR runs"
           else
-            reason="the GRUMPY_BASE_URL and/or GRUMPY_TOKEN repository secrets are not set"
+            reason="the VIBECHECK_BASE_URL and/or VIBECHECK_TOKEN repository secrets are not set"
           fi
 
-          echo "::notice title=grumpy skipped::Not run because $reason."
+          echo "::notice title=vibecheck skipped::Not run because $reason."
           {
-            echo "### grumpy: SKIPPED"
+            echo "### vibecheck: SKIPPED"
             echo
             echo "Not run because $reason."
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Ask grumpy
-        id: grumpy
+      - name: Ask vibecheck
+        id: vibecheck
         if: steps.config.outputs.configured == 'true'
         env:
-          GRUMPY_BASE_URL: ${{ secrets.GRUMPY_BASE_URL }}
-          GRUMPY_TOKEN: ${{ secrets.GRUMPY_TOKEN }}
+          VIBECHECK_BASE_URL: ${{ secrets.VIBECHECK_BASE_URL || secrets.GRUMPY_BASE_URL }}
+          VIBECHECK_TOKEN: ${{ secrets.VIBECHECK_TOKEN || secrets.GRUMPY_TOKEN }}
           REPO: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -109,25 +109,25 @@ jobs:
           # own change and to the grader as a claim about this diff.
           # `A...B` diffs from the merge base, which is what "the whole PR
           # against its base" actually means.
-          git diff "$BASE_SHA...$HEAD_SHA" > /tmp/grumpy.diff
+          git diff "$BASE_SHA...$HEAD_SHA" > /tmp/vibecheck.diff
 
           # Called on every run, not only when no session exists yet. It's
           # idempotent — a re-run gets the existing session back with a 200
           # instead of a 201 — and it's also what makes the server re-post
-          # `grumpy/verdict`, so re-running this job is the fix if a status
+          # `vibecheck/verdict`, so re-running this job is the fix if a status
           # post to GitHub ever failed.
           code=$(jq -n \
             --arg repo "$REPO" \
             --argjson pr_number "$PR_NUMBER" \
             --arg head_sha "$HEAD_SHA" \
             --arg base_sha "$BASE_SHA" \
-            --rawfile diff /tmp/grumpy.diff \
+            --rawfile diff /tmp/vibecheck.diff \
             '{repo: $repo, pr_number: $pr_number, head_sha: $head_sha, base_sha: $base_sha, diff: $diff}' \
-            | curl -sS -o /tmp/grumpy.json -w '%{http_code}' -X POST \
-                -H "Authorization: Bearer $GRUMPY_TOKEN" \
+            | curl -sS -o /tmp/vibecheck.json -w '%{http_code}' -X POST \
+                -H "Authorization: Bearer $VIBECHECK_TOKEN" \
                 -H "Content-Type: application/json" \
                 --data @- \
-                "$GRUMPY_BASE_URL/sessions" || true)
+                "$VIBECHECK_BASE_URL/sessions" || true)
 
           # The one way this job goes red: the server rejected the PR itself
           # (EVALUATOR's checks, e.g. too many changed lines) before asking
@@ -135,43 +135,43 @@ jobs:
           # `rejection` key, which only a rejection carries.
           rejection=""
           if [ "$code" = "422" ]; then
-            rejection=$(jq -r '.rejection // empty' /tmp/grumpy.json 2>/dev/null || true)
+            rejection=$(jq -r '.rejection // empty' /tmp/vibecheck.json 2>/dev/null || true)
           fi
           if [ -n "$rejection" ]; then
             {
-              echo "rejection<<GRUMPY_EOF"
+              echo "rejection<<VIBECHECK_EOF"
               echo "$rejection"
-              echo "GRUMPY_EOF"
+              echo "VIBECHECK_EOF"
             } >> "$GITHUB_OUTPUT"
-            echo "::error title=grumpy rejected this PR::$rejection"
+            echo "::error title=vibecheck rejected this PR::$rejection"
             {
-              echo "### grumpy: REJECTED"
+              echo "### vibecheck: REJECTED"
               echo
               echo "$rejection"
             } >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
 
-          # Anything else is grumpy's problem, not the PR's, so warn and
+          # Anything else is vibecheck's problem, not the PR's, so warn and
           # pass. `|| true` on curl keeps `set -e` from failing
           # the step when the server can't be reached at all (code 000).
           if [ "$code" != "200" ] && [ "$code" != "201" ]; then
-            echo "::warning title=grumpy unavailable::POST /sessions returned HTTP $code: $(cat /tmp/grumpy.json 2>/dev/null)"
-            echo "### grumpy: UNAVAILABLE (HTTP $code), not blocking" >> "$GITHUB_STEP_SUMMARY"
+            echo "::warning title=vibecheck unavailable::POST /sessions returned HTTP $code: $(cat /tmp/vibecheck.json 2>/dev/null)"
+            echo "### vibecheck: UNAVAILABLE (HTTP $code), not blocking" >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
 
           # Only a newly created session gets a PR comment, so re-runs
           # don't pile up duplicate links.
           if [ "$code" = "201" ]; then
-            echo "session_url=$(jq -r .session_url /tmp/grumpy.json)" >> "$GITHUB_OUTPUT"
+            echo "session_url=$(jq -r .session_url /tmp/vibecheck.json)" >> "$GITHUB_OUTPUT"
           fi
-          echo "### grumpy: $(jq -r .status /tmp/grumpy.json)" >> "$GITHUB_STEP_SUMMARY"
+          echo "### vibecheck: $(jq -r .status /tmp/vibecheck.json)" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Comment session link
         # always(): a rejection fails the step above, and its comment is
         # the one the author most needs to see.
-        if: always() && (steps.grumpy.outputs.session_url || steps.grumpy.outputs.rejection)
+        if: always() && (steps.vibecheck.outputs.session_url || steps.vibecheck.outputs.rejection)
         # A failed comment (rate limit, token scope) loses the message but
         # must not change the job's result; the session, or the rejection
         # in the job summary, still exists. The text arrives via env, not
@@ -179,22 +179,22 @@ jobs:
         continue-on-error: true
         uses: actions/github-script@v9
         env:
-          SESSION_URL: ${{ steps.grumpy.outputs.session_url }}
-          REJECTION: ${{ steps.grumpy.outputs.rejection }}
+          SESSION_URL: ${{ steps.vibecheck.outputs.session_url }}
+          REJECTION: ${{ steps.vibecheck.outputs.rejection }}
         with:
           script: |
             const body = process.env.REJECTION
               ? [
-                  "**grumpy** rejected this PR before asking anything:",
+                  "**vibecheck** rejected this PR before asking anything:",
                   "",
                   `> ${process.env.REJECTION}`,
                 ]
               : [
-                  "🧐 **grumpy** wants to check you understand this PR. Answer one question about the change:",
+                  "**vibecheck** wants to check you understand this PR. Answer one question about the change:",
                   "",
                   process.env.SESSION_URL,
                   "",
-                  "Your answer is graded, and the result shows up as the `grumpy/verdict` check on this PR.",
+                  "Your answer is graded, and the result shows up as the `vibecheck/verdict` check on this PR.",
                 ];
             await github.rest.issues.createComment({
               owner: context.repo.owner,

@@ -17,14 +17,14 @@ def _headers(token: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
 
 
-def test_docs_endpoints_are_disabled(grumpy_env) -> None:
+def test_docs_endpoints_are_disabled(vibecheck_env) -> None:
     with TestClient(app) as client:
         assert client.get("/docs").status_code == 404
         assert client.get("/redoc").status_code == 404
         assert client.get("/openapi.json").status_code == 404
 
 
-def test_security_headers_present_on_response(grumpy_env) -> None:
+def test_security_headers_present_on_response(vibecheck_env) -> None:
     with TestClient(app) as client:
         response = client.get("/healthz")
 
@@ -34,7 +34,7 @@ def test_security_headers_present_on_response(grumpy_env) -> None:
     assert "default-src 'none'" in response.headers["Content-Security-Policy"]
 
 
-def test_oversized_sessions_body_rejected_with_413(grumpy_env, monkeypatch) -> None:
+def test_oversized_sessions_body_rejected_with_413(vibecheck_env, monkeypatch) -> None:
     # Small enough to trip well before Pydantic ever sees valid JSON —
     # proves the raw body is rejected before it's parsed, not after.
     monkeypatch.setenv("MAX_REQUEST_BODY_BYTES", "500")
@@ -45,14 +45,14 @@ def test_oversized_sessions_body_rejected_with_413(grumpy_env, monkeypatch) -> N
         response = client.post(
             "/sessions",
             content=b"x" * 2000,
-            headers={**_headers(grumpy_env.token), "Content-Type": "application/json"},
+            headers={**_headers(vibecheck_env.token), "Content-Type": "application/json"},
         )
 
     assert response.status_code == 413
     assert "exceeds maximum size" in response.json()["detail"]
 
 
-def test_oversized_answer_form_body_rejected_with_413(grumpy_env, monkeypatch) -> None:
+def test_oversized_answer_form_body_rejected_with_413(vibecheck_env, monkeypatch) -> None:
     monkeypatch.setenv("MAX_REQUEST_BODY_BYTES", "500")
     monkeypatch.setenv("MAX_DIFF_BYTES", "200")
     monkeypatch.setenv("MAX_ANSWER_BYTES", "200")
@@ -66,7 +66,7 @@ def test_oversized_answer_form_body_rejected_with_413(grumpy_env, monkeypatch) -
     assert response.status_code == 413
 
 
-def test_normal_request_within_limits_still_succeeds(grumpy_env) -> None:
+def test_normal_request_within_limits_still_succeeds(vibecheck_env) -> None:
     # Regression check: the middleware must not interfere with an
     # ordinary, well-under-the-cap request.
     repo = f"octo/mw-{secrets.token_hex(4)}"
@@ -80,13 +80,13 @@ def test_normal_request_within_limits_still_succeeds(grumpy_env) -> None:
                 "base_sha": "2" * 40,
                 "diff": "diff --git a/x b/x\n+hello\n",
             },
-            headers=_headers(grumpy_env.token),
+            headers=_headers(vibecheck_env.token),
         )
 
     assert response.status_code == 201
 
 
-def test_csp_forbids_all_outbound_subresource_requests(grumpy_env) -> None:
+def test_csp_forbids_all_outbound_subresource_requests(vibecheck_env) -> None:
     """`default-src 'none'` with no `img-src` or `connect-src` means a
     rendered page cannot fetch anything off-origin at all. That matters
     here specifically: /s/{token} URLs are credentials, and an outbound

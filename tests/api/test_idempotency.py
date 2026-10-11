@@ -1,6 +1,6 @@
 """Two concurrent POST /sessions for the same (repo, pr_number, head_sha)
 must produce exactly one row and return the same session_url — the normal
-case for grumpy (two Action runs racing on the same head SHA), not an edge
+case for vibecheck (two Action runs racing on the same head SHA), not an edge
 case.
 
 Run genuinely concurrently via asyncio.gather, not sequentially: a
@@ -25,7 +25,7 @@ import psycopg
 from app.main import app
 
 
-def test_concurrent_session_creation_is_idempotent(grumpy_env, database_url: str) -> None:
+def test_concurrent_session_creation_is_idempotent(vibecheck_env, database_url: str) -> None:
     repo = f"octo/race-{secrets.token_hex(4)}"
     pr_number = 99
     head_sha = "d4" * 20
@@ -36,7 +36,7 @@ def test_concurrent_session_creation_is_idempotent(grumpy_env, database_url: str
         "base_sha": "e5" * 20,
         "diff": "diff --git a/x b/x\n+hello\n",
     }
-    headers = {"Authorization": f"Bearer {grumpy_env.token}"}
+    headers = {"Authorization": f"Bearer {vibecheck_env.token}"}
 
     async def _run() -> tuple[httpx.Response, httpx.Response]:
         async with app.router.lifespan_context(app):
@@ -61,7 +61,7 @@ def test_concurrent_session_creation_is_idempotent(grumpy_env, database_url: str
     assert row[0] == 1
 
 
-def test_rerunning_for_the_same_sha_makes_no_further_model_calls(grumpy_env) -> None:
+def test_rerunning_for_the_same_sha_makes_no_further_model_calls(vibecheck_env) -> None:
     from fastapi.testclient import TestClient
 
     from app.ai.grading import FakeGrader
@@ -85,7 +85,7 @@ def test_rerunning_for_the_same_sha_makes_no_further_model_calls(grumpy_env) -> 
         "base_sha": "cd" * 20,
         "diff": "diff --git a/x b/x\n+hello\n",
     }
-    headers = {"Authorization": f"Bearer {grumpy_env.token}"}
+    headers = {"Authorization": f"Bearer {vibecheck_env.token}"}
 
     with TestClient(app) as client:
         app.state.grader = CountingGrader()

@@ -1,4 +1,4 @@
-site_name: grumpy
+site_name: vibecheck
 site_description: The AI that vibe checks your PRs
 site_url: https://bhurghundii.com/grumpy.dev/
 repo_url: https://github.com/bhurghundii/grumpy.dev
@@ -39,7 +39,7 @@ nav:
   - Getting started:
       - Quickstart: quickstart.md
       - How it works: how-it-works.md
-  - Using grumpy:
+  - Using vibecheck:
       - Wire it into a repo: wire-it-up.md
       - Blocking PRs: blocking-prs.md
       - Configuration: configuration.md

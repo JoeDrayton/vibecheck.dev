@@ -1,4 +1,4 @@
-"""The `grumpy/verdict` commit status: what GitHubStatusPublisher sends and
+"""The `vibecheck/verdict` commit status: what GitHubStatusPublisher sends and
 how it fails (mocked HTTP transport, no network), then where the app
 calls it — POST /sessions and a graded answer that ends the session.
 """
@@ -16,11 +16,16 @@ from fastapi.testclient import TestClient
 
 from app.db.exam import record_attempt
 from app.db.sessions import fetch_session_by_token
-from app.github.commit_status import CONTEXT, GitHubStatusPublisher, NullStatusPublisher
+from app.github.commit_status import (
+    CONTEXT,
+    LEGACY_CONTEXTS,
+    GitHubStatusPublisher,
+    NullStatusPublisher,
+)
 from app.main import app
 
 _SHA = "a" * 40
-_SESSION_URL = "https://grumpy.example.com/s/tok"
+_SESSION_URL = "https://vibecheck.example.com/s/tok"
 
 
 def _publisher(handler, **kwargs) -> GitHubStatusPublisher:
@@ -48,15 +53,29 @@ def test_posts_the_mapped_state_to_the_head_commit(status: str, state: str) -> N
 
     _publish(_publisher(handler), status)
 
-    (request,) = requests
-    assert request.method == "POST"
-    assert str(request.url) == f"https://api.github.com/repos/octo/repo/statuses/{_SHA}"
-    assert request.headers["Authorization"] == "Bearer gh-token"
-    body = json.loads(request.content)
-    assert body["state"] == state
-    assert body["context"] == CONTEXT
-    assert body["target_url"] == _SESSION_URL
-    assert 0 < len(body["description"]) <= 140
+    # One post under the current context, then one per legacy context.
+    assert len(requests) == 1 + len(LEGACY_CONTEXTS)
+    for request in requests:
+        assert request.method == "POST"
+        assert str(request.url) == f"https://api.github.com/repos/octo/repo/statuses/{_SHA}"
+        assert request.headers["Authorization"] == "Bearer gh-token"
+        body = json.loads(request.content)
+        assert body["state"] == state
+        assert body["target_url"] == _SESSION_URL
+        assert 0 < len(body["description"]) <= 140
+    assert [json.loads(r.content)["context"] for r in requests] == [CONTEXT, *LEGACY_CONTEXTS]
+
+
+def test_status_is_also_posted_under_the_old_grumpy_name() -> None:
+    contexts: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        contexts.append(json.loads(request.content)["context"])
+        return httpx.Response(201, json={})
+
+    _publish(_publisher(handler), "passed")
+
+    assert contexts == ["vibecheck/verdict", "grumpy/verdict"]
 
 
 def test_enterprise_api_url_is_honoured_with_or_without_trailing_slash() -> None:
@@ -68,14 +87,15 @@ def test_enterprise_api_url_is_honoured_with_or_without_trailing_slash() -> None
 
     _publish(_publisher(handler, api_url="https://ghe.example.com/api/v3/"), "pending")
 
-    assert urls == [f"https://ghe.example.com/api/v3/repos/octo/repo/statuses/{_SHA}"]
+    expected = f"https://ghe.example.com/api/v3/repos/octo/repo/statuses/{_SHA}"
+    assert urls == [expected] * (1 + len(LEGACY_CONTEXTS))
 
 
 def test_github_rejecting_the_status_is_logged_not_raised(caplog) -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(403, json={"message": "Resource not accessible"})
 
-    with caplog.at_level(logging.WARNING, logger="grumpy.commit_status"):
+    with caplog.at_level(logging.WARNING, logger="vibecheck.commit_status"):
         _publish(_publisher(handler), "passed")
 
     (record,) = caplog.records
@@ -87,7 +107,7 @@ def test_network_failure_is_logged_not_raised(caplog) -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         raise httpx.ConnectTimeout("timed out", request=request)
 
-    with caplog.at_level(logging.WARNING, logger="grumpy.commit_status"):
+    with caplog.at_level(logging.WARNING, logger="vibecheck.commit_status"):
         _publish(_publisher(handler), "passed")
 
     (record,) = caplog.records
@@ -141,7 +161,7 @@ def _skip_screen(client, token: str, index: int, attempts: int = 3) -> None:
         _answer(client, token, index, "nope")
 
 
-def test_blank_status_token_means_nothing_is_posted(grumpy_env, monkeypatch, capsys) -> None:
+def test_blank_status_token_means_nothing_is_posted(vibecheck_env, monkeypatch, capsys) -> None:
     # Blank rather than deleted: it's what docker-compose's `${VAR:-}`
     # hands the app when .env doesn't set it, and it also keeps a
     # GITHUB_STATUS_TOKEN in a developer's local .env from leaking in.
@@ -162,7 +182,7 @@ def test_blank_status_token_means_nothing_is_posted(grumpy_env, monkeypatch, cap
     )
 
 
-def test_status_token_enables_the_github_publisher(grumpy_env, monkeypatch, capsys) -> None:
+def test_status_token_enables_the_github_publisher(vibecheck_env, monkeypatch, capsys) -> None:
     monkeypatch.setenv("GITHUB_STATUS_TOKEN", "gh-token")
     with TestClient(app):
         assert isinstance(app.state.status_publisher, GitHubStatusPublisher)
@@ -170,13 +190,13 @@ def test_status_token_enables_the_github_publisher(grumpy_env, monkeypatch, caps
     assert '"outcome": "enabled"' in capsys.readouterr().out
 
 
-def test_create_session_posts_pending_and_a_repeat_posts_again(grumpy_env) -> None:
+def test_create_session_posts_pending_and_a_repeat_posts_again(vibecheck_env) -> None:
     repo = f"octo/status-create-{secrets.token_hex(4)}"
     recorder = _RecordingPublisher()
     with TestClient(app) as client:
         app.state.status_publisher = recorder
-        first = _create_session(client, grumpy_env.token, repo)
-        second = _create_session(client, grumpy_env.token, repo)
+        first = _create_session(client, vibecheck_env.token, repo)
+        second = _create_session(client, vibecheck_env.token, repo)
 
     expected = {
         "repo": repo,
@@ -188,12 +208,12 @@ def test_create_session_posts_pending_and_a_repeat_posts_again(grumpy_env) -> No
     assert recorder.calls == [expected, expected]
 
 
-def test_passing_the_walkthrough_posts_success(grumpy_env) -> None:
+def test_passing_the_walkthrough_posts_success(vibecheck_env) -> None:
     repo = f"octo/status-pass-{secrets.token_hex(4)}"
     recorder = _RecordingPublisher()
     with TestClient(app) as client:
         app.state.status_publisher = recorder
-        session_url = _create_session(client, grumpy_env.token, repo).json()["session_url"]
+        session_url = _create_session(client, vibecheck_env.token, repo).json()["session_url"]
         token = _session_token(session_url)
         for i in (0, 1, 2):  # 3 of 5 correct -> pass
             _pass_screen(client, token, i)
@@ -203,12 +223,12 @@ def test_passing_the_walkthrough_posts_success(grumpy_env) -> None:
     assert recorder.calls[-1]["target_url"] == session_url
 
 
-def test_screens_post_nothing_until_failure_becomes_certain(grumpy_env) -> None:
+def test_screens_post_nothing_until_failure_becomes_certain(vibecheck_env) -> None:
     repo = f"octo/status-fail-{secrets.token_hex(4)}"
     recorder = _RecordingPublisher()
     with TestClient(app) as client:
         app.state.status_publisher = recorder
-        session_url = _create_session(client, grumpy_env.token, repo).json()["session_url"]
+        session_url = _create_session(client, vibecheck_env.token, repo).json()["session_url"]
         token = _session_token(session_url)
 
         _skip_screen(client, token, 0)  # 1 skipped, 4 still open -> reachable
@@ -220,12 +240,12 @@ def test_screens_post_nothing_until_failure_becomes_certain(grumpy_env) -> None:
     assert [call["status"] for call in recorder.calls] == ["pending", "failed"]
 
 
-def test_record_attempt_on_a_decided_session_is_a_noop(grumpy_env) -> None:
+def test_record_attempt_on_a_decided_session_is_a_noop(vibecheck_env) -> None:
     """Once the session is decided, a late or racing screen must report the
     stored verdict and write nothing — never overwrite a passed session."""
     repo = f"octo/status-race-{secrets.token_hex(4)}"
     with TestClient(app) as client:
-        session_url = _create_session(client, grumpy_env.token, repo).json()["session_url"]
+        session_url = _create_session(client, vibecheck_env.token, repo).json()["session_url"]
         token = _session_token(session_url)
         for i in (0, 1, 2):
             _pass_screen(client, token, i)  # passed

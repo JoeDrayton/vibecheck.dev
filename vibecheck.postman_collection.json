@@ -1,12 +1,12 @@
 {
   "info": {
-    "name": "grumpy",
-    "description": "grumpy — a merge gate that checks the developer understands the change.\n\nRun against a local `docker compose up --build` (see the repo README). Out of the box, `.env.example` sets `FAKE_GRADER=true`, so no Anthropic API key is needed to exercise the full flow locally — see the \"Answer page\" folder for how FakeGrader decides pass/fail.\n\nSet `grumpy_token` below to whatever `GRUMPY_TOKEN` is in your `.env` (defaults to a placeholder in `.env.example` — generate a real one, or copy the one you're actually running with).\n\n\"Create session\" captures the returned token into the `session_token` variable automatically, so the requests in \"Answer page\" work without manual copy-paste. Each run of \"Create session\" also randomizes `head_sha`/`base_sha` via a pre-request script, so you get a fresh session every time instead of hitting the idempotent-replay path — useful since a session only accepts one answer.",
+    "name": "vibecheck",
+    "description": "vibecheck — a merge gate that checks the developer understands the change.\n\nRun against a local `docker compose up --build` (see the repo README). Out of the box, `.env.example` sets `FAKE_GRADER=true`, so no Anthropic API key is needed to exercise the full flow locally — see the \"Answer page\" folder for how FakeGrader decides pass/fail.\n\nSet `vibecheck_token` below to whatever `VIBECHECK_TOKEN` is in your `.env` (defaults to a placeholder in `.env.example` — generate a real one, or copy the one you're actually running with).\n\n\"Create session\" captures the returned token into the `session_token` variable automatically, so the requests in \"Answer page\" work without manual copy-paste. Each run of \"Create session\" also randomizes `head_sha`/`base_sha` via a pre-request script, so you get a fresh session every time instead of hitting the idempotent-replay path — useful since a session only accepts one answer.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     { "key": "base_url", "value": "http://localhost:8000", "type": "string" },
-    { "key": "grumpy_token", "value": "changeme-generate-a-real-token", "type": "string" },
+    { "key": "vibecheck_token", "value": "changeme-generate-a-real-token", "type": "string" },
     { "key": "repo", "value": "octo/demo", "type": "string" },
     { "key": "pr_number", "value": "1", "type": "string" },
     { "key": "head_sha", "value": "1111111111111111111111111111111111111111", "type": "string" },
@@ -77,7 +77,7 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{grumpy_token}}" },
+              { "key": "Authorization", "value": "Bearer {{vibecheck_token}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
             "body": {
@@ -97,7 +97,7 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{grumpy_token}}" },
+              { "key": "Authorization", "value": "Bearer {{vibecheck_token}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
             "body": {
@@ -116,7 +116,7 @@
           "name": "Get verdict",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{grumpy_token}}" }],
+            "header": [{ "key": "Authorization", "value": "Bearer {{vibecheck_token}}" }],
             "url": {
               "raw": "{{base_url}}/verdict?repo={{repo}}&pr_number={{pr_number}}&head_sha={{head_sha}}",
               "host": ["{{base_url}}"],
@@ -134,7 +134,7 @@
           "name": "Get verdict — unknown SHA (expect UNKNOWN)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{grumpy_token}}" }],
+            "header": [{ "key": "Authorization", "value": "Bearer {{vibecheck_token}}" }],
             "url": {
               "raw": "{{base_url}}/verdict?repo={{repo}}&pr_number={{pr_number}}&head_sha=ffffffffffffffffffffffffffffffffffffffff",
               "host": ["{{base_url}}"],
@@ -286,7 +286,7 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{grumpy_token}}" },
+              { "key": "Authorization", "value": "Bearer {{vibecheck_token}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
             "body": {
@@ -302,7 +302,7 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{grumpy_token}}" },
+              { "key": "Authorization", "value": "Bearer {{vibecheck_token}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
             "body": {
@@ -329,7 +329,7 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Authorization", "value": "Bearer {{grumpy_token}}" },
+              { "key": "Authorization", "value": "Bearer {{vibecheck_token}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
             "body": {

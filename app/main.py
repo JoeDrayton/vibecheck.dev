@@ -27,8 +27,8 @@ from app.middleware import MaxBodySizeMiddleware
 from app.schemas import CreateSessionRequest
 from app.web import router as web_router
 
-request_logger = logging.getLogger("grumpy.request")
-startup_logger = logging.getLogger("grumpy.startup")
+request_logger = logging.getLogger("vibecheck.request")
+startup_logger = logging.getLogger("vibecheck.startup")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
@@ -80,7 +80,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     finally:
         await pool.close()
 
-app = FastAPI(title="grumpy", lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
+app = FastAPI(title="vibecheck", lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
 app.include_router(web_router)
 
 app.mount("/static", StaticFiles(directory=Path(__file__).resolve().parent / "web" / "static"), name="static")
@@ -201,7 +201,7 @@ async def create_session(payload: CreateSessionRequest, request: Request) -> JSO
         ttl_days=settings.session_ttl_days,
     )
 
-    session_url = build_session_url(settings.grumpy_base_url, row["token"])
+    session_url = build_session_url(settings.vibecheck_base_url, row["token"])
 
     # On every call, so re-running the workflow re-posts a status lost to a GitHub hiccup.
     await app.state.status_publisher.publish(

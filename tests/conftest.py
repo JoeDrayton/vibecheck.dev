@@ -29,7 +29,7 @@ import pytest
 from testcontainers.community.postgres import PostgresContainer
 
 _ON_MACOS_DOCKER_DESKTOP = (
-    platform.system() == "Darwin" or os.getenv("GRUMPY_TESTCONTAINERS_MACOS_FIXUP")
+    platform.system() == "Darwin" or os.getenv("VIBECHECK_TESTCONTAINERS_MACOS_FIXUP")
 )
 
 if _ON_MACOS_DOCKER_DESKTOP:
@@ -54,22 +54,22 @@ def database_url(postgres_container: PostgresContainer) -> str:
 
 
 @dataclass
-class GrumpyEnv:
+class VibecheckEnv:
     base_url: str
     token: str
 
 
 @pytest.fixture()
-def grumpy_env(database_url: str, monkeypatch: pytest.MonkeyPatch) -> GrumpyEnv:
+def vibecheck_env(database_url: str, monkeypatch: pytest.MonkeyPatch) -> VibecheckEnv:
     """Sets the env vars app.config.Settings requires, so tests that import
     app.main and drive its lifespan (directly or via TestClient) get a
     working config without touching the real environment."""
-    env = GrumpyEnv(
-        base_url="https://grumpy.example.com",
+    env = VibecheckEnv(
+        base_url="https://vibecheck.example.com",
         token=secrets.token_urlsafe(16),
     )
     monkeypatch.setenv("DATABASE_URL", database_url)
-    monkeypatch.setenv("GRUMPY_BASE_URL", env.base_url)
-    monkeypatch.setenv("GRUMPY_TOKEN", env.token)
+    monkeypatch.setenv("VIBECHECK_BASE_URL", env.base_url)
+    monkeypatch.setenv("VIBECHECK_TOKEN", env.token)
     monkeypatch.setenv("FAKE_GRADER", "true")
     return env

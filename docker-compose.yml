@@ -3,18 +3,18 @@ services:
     image: postgres:16
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-grumpy}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-grumpy}
-      POSTGRES_DB: ${POSTGRES_DB:-grumpy}
+      POSTGRES_USER: ${POSTGRES_USER:-vibecheck}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vibecheck}
+      POSTGRES_DB: ${POSTGRES_DB:-vibecheck}
     ports:
       # Published on 5433, not 5432 — 5432 is already bound on the
       # reference dev machine. This only affects the host-side mapping;
       # inside the compose network `app` still reaches `db` on 5432.
       - "5433:5432"
     volumes:
-      - grumpy-db-data:/var/lib/postgresql/data
+      - vibecheck-db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-grumpy} -d ${POSTGRES_DB:-grumpy}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-vibecheck} -d ${POSTGRES_DB:-vibecheck}"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -23,17 +23,17 @@ services:
     build: .
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-grumpy}:${POSTGRES_PASSWORD:-grumpy}@db:5432/${POSTGRES_DB:-grumpy}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-vibecheck}:${POSTGRES_PASSWORD:-vibecheck}@db:5432/${POSTGRES_DB:-vibecheck}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
-      GRUMPY_BASE_URL: ${GRUMPY_BASE_URL:?set GRUMPY_BASE_URL in .env}
-      GRUMPY_TOKEN: ${GRUMPY_TOKEN:?set GRUMPY_TOKEN in .env}
-      GRUMPY_ALLOWED_REPOS: ${GRUMPY_ALLOWED_REPOS:-}
+      VIBECHECK_BASE_URL: ${VIBECHECK_BASE_URL:-${GRUMPY_BASE_URL:?set VIBECHECK_BASE_URL in .env}}
+      VIBECHECK_TOKEN: ${VIBECHECK_TOKEN:-${GRUMPY_TOKEN:?set VIBECHECK_TOKEN in .env}}
+      VIBECHECK_ALLOWED_REPOS: ${VIBECHECK_ALLOWED_REPOS:-${GRUMPY_ALLOWED_REPOS:-}}
       GITHUB_STATUS_TOKEN: ${GITHUB_STATUS_TOKEN:-}
       GITHUB_API_URL: ${GITHUB_API_URL:-https://api.github.com}
       FAKE_GRADER: ${FAKE_GRADER:?set FAKE_GRADER in .env}
       MODEL_API_KEY: ${MODEL_API_KEY:-}
       GRADING_STRICTNESS: ${GRADING_STRICTNESS:-standard}
-      GRUMPY_REPO_STRICTNESS: ${GRUMPY_REPO_STRICTNESS:-}
+      VIBECHECK_REPO_STRICTNESS: ${VIBECHECK_REPO_STRICTNESS:-${GRUMPY_REPO_STRICTNESS:-}}
       EVALUATOR: ${EVALUATOR:-}
     ports:
       - "${APP_PORT:-8000}:8000"
@@ -42,4 +42,4 @@ services:
         condition: service_healthy
 
 volumes:
-  grumpy-db-data:
+  vibecheck-db-data:

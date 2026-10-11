@@ -1,10 +1,10 @@
-# grumpy
+# vibecheck
 
 The AI that vibe checks your PRs.
 
-**Grumpy is a merge gate that checks the author of the PR understands the change they are putting in.**
+**Vibecheck is a merge gate that checks the author of the PR understands the change they are putting in.**
 
-grumpy sits in your PR pipeline as a GitHub Action. Before a PR can merge, it walks whoever opened it through their own diff one section at a time, asking a question about each, and blocks the merge until they answer enough of them well enough to convince an LLM grader.
+vibecheck sits in your PR pipeline as a GitHub Action. Before a PR can merge, it walks whoever opened it through their own diff one section at a time, asking a question about each, and blocks the merge until they answer enough of them well enough to convince an LLM grader.
 
 ## Where to start
 

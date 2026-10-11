@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>grumpy</title>
+<title>vibecheck</title>
 <style>
   body { font-family: system-ui, sans-serif; max-width: 60rem; margin: 2rem auto; padding: 0 1rem; }
   h1 { font-size: 1rem; font-weight: normal; color: #555; }
@@ -67,7 +67,7 @@
   <p class="mark-pass">Correct</p>
   <p class="label">You wrote:</p>
   <p class="you-wrote">{{ last_answer }}</p>
-  {% if last_note %}<p class="label">grumpy says:</p><div class="panel">{{ last_note|markdown }}</div>{% endif %}
+  {% if last_note %}<p class="label">vibecheck says:</p><div class="panel">{{ last_note|markdown }}</div>{% endif %}
   <p class="nav">
     {% if session_decided %}<a class="btn" href="/s/{{ token }}">See your result</a>
     {% elif next_href %}<a class="btn" href="{{ next_href }}">Next question</a>{% endif %}
