@@ -2,31 +2,6 @@
 
 ## Unreleased
 
-**Renamed**
-
-- The project is now called vibecheck (it was grumpy). Nothing about how it
-  works has changed, but several names did:
-  - `GRUMPY_BASE_URL`, `GRUMPY_TOKEN`, `GRUMPY_ALLOWED_REPOS` and
-    `GRUMPY_REPO_STRICTNESS` are now `VIBECHECK_*`. The old names are still
-    read as a fallback, and the new name wins if both are set. The same goes
-    for the `GRUMPY_*` repository secrets in the workflow. Move to the new
-    names at your leisure; the fallbacks will be removed in a later release.
-  - The commit status is now `vibecheck/verdict`. The old `grumpy/verdict`
-    is no longer posted, so a branch protection rule or ruleset that
-    requires the old name will wait forever. Switch it to
-    `vibecheck/verdict` before upgrading.
-  - The workflow file is `.github/workflows/vibecheck.yml`. The `ask`/`grill`
-    job name is unchanged.
-  - The default local Postgres user, password, database and volume are now
-    `vibecheck`. An existing `grumpy-db-data` volume is not reused, so
-    `docker compose up` starts with an empty database; set `POSTGRES_USER`,
-    `POSTGRES_PASSWORD`, `POSTGRES_DB` and move the volume yourself to keep
-    local data.
-  - The GitHub repository is now `bhurghundii/vibecheck.dev`; GitHub
-    redirects the old address. The docs site moved from
-    `bhurghundii.com/grumpy.dev/` to `bhurghundii.com/vibecheck.dev/`, and the
-    old docs address does not redirect.
-
 **Changed**
 
 - A diff over `MAX_DIFF_BYTES` is now a `422` rejection that fails the
