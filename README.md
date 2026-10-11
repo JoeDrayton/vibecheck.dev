@@ -1,14 +1,16 @@
 # grumpy - the AI that vibe checks your PRs
 
-To put it plainly: **Grumpy is a merge gate that checks the author of the PR understands the change they are putting in.**
+https://github.com/user-attachments/assets/9d8c28a7-a025-4d69-854c-651698859e1a
 
-grumpy sits in your PR pipeline as a GitHub Action. Before a PR can merge, grumpy walks whoever opened it through their own diff one section at a time, asking a question about each — the first always *"How does this change work on a high level?"* — and blocks the merge until they answer enough of them well enough to convince an LLM grader. 
+**Grumpy is a merge gate that checks the author of the PR understands the change they are putting in.**
 
-## Why should you care?
+Before a PR can merge, grumpy asks several questions about the PR (generated using AI.) The first question is always *"How does this change work on a high level?"* and grumpy will block the PR until they answer technical questions well enough to convince a LLM grader. 
 
-AI is here, and more PRs are AI-generated or AI-assisted. People are literally taking Jira tickets, shoving them into Claude, and reviewers have to deal with the 1K+ line PRs. 
+## What problem is this solving?
 
-The result? More burnout. People just say: "LGTM, CI is green" and now you are shipping terrible software! For business critical software, this is unacceptable.
+It's far easier to write code than read and understand it. This means that reviewers are often burdened with the task of reviewing massive PRs. 
+
+The result? More burnout. People just say: "LGTM, CI is green" and now you are shipping code you don't understand! For business critical software, this is unacceptable.
 
 ## Features (so far)
 
@@ -46,18 +48,6 @@ Full docs live at **https://bhurghundii.com/grumpy.dev/** (source in [`docs/`](d
 - [Configuration](https://bhurghundii.com/grumpy.dev/configuration/)
 - [Deploying to Railway](https://bhurghundii.com/grumpy.dev/deploy-railway/) and the [pre-launch security checklist](https://bhurghundii.com/grumpy.dev/security/)
 - [Local development](https://bhurghundii.com/grumpy.dev/development/) and [limitations](https://bhurghundii.com/grumpy.dev/limitations/)
-
-## Quick look
-
-```sh
-git clone https://github.com/bhurghundii/grumpy.dev.git
-cd grumpy.dev
-cp .env.example .env
-# edit .env: set GRUMPY_TOKEN to a real secret and GRUMPY_BASE_URL
-docker compose up --build
-curl localhost:8000/healthz
-# {"status": "ok"}
-```
 
 ## License
 MIT
