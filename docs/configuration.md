@@ -1,6 +1,6 @@
 # Configuration
 
-All config is environment variables, validated at startup — vibecheck refuses to boot with a missing required var or an insecure `VIBECHECK_TOKEN`, rather than failing confusingly later. See [`.env.example`](https://github.com/bhurghundii/grumpy.dev/blob/main/.env.example) for the full annotated list; the ones you'll actually touch:
+All config is environment variables, validated at startup — vibecheck refuses to boot with a missing required var or an insecure `VIBECHECK_TOKEN`, rather than failing confusingly later. See [`.env.example`](https://github.com/bhurghundii/vibecheck.dev/blob/main/.env.example) for the full annotated list; the ones you'll actually touch:
 
 !!! note "Renamed from `GRUMPY_*`"
     `VIBECHECK_BASE_URL`, `VIBECHECK_TOKEN` and `VIBECHECK_ALLOWED_REPOS` used to be `GRUMPY_BASE_URL`, `GRUMPY_TOKEN` and `GRUMPY_ALLOWED_REPOS`. The old names still work as a fallback (the new name wins if both are set), but will be removed in a later release.

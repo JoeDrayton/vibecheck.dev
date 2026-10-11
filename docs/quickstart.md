@@ -5,8 +5,8 @@ Self-host it locally.
 Requires Docker and Docker Compose.
 
 ```sh
-git clone https://github.com/bhurghundii/grumpy.dev.git
-cd grumpy.dev
+git clone https://github.com/bhurghundii/vibecheck.dev.git
+cd vibecheck.dev
 cp .env.example .env
 # edit .env: set VIBECHECK_TOKEN to a real secret (see below) and VIBECHECK_BASE_URL
 docker compose up --build

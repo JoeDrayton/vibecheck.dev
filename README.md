@@ -27,8 +27,8 @@ The result? More burnout. People just say: "LGTM, CI is green" and now you are s
 
 See it in action on real PRs:
 
-- [Demo 1: Pass a PR](https://github.com/bhurghundii/grumpy.dev/pull/30): answer well and `vibecheck/verdict` goes green.
-- [Demo 2: Fail a PR](https://github.com/bhurghundii/grumpy.dev/pull/27): answer badly and the merge stays blocked.
+- [Demo 1: Pass a PR](https://github.com/bhurghundii/vibecheck.dev/pull/30): answer well and `vibecheck/verdict` goes green.
+- [Demo 2: Fail a PR](https://github.com/bhurghundii/vibecheck.dev/pull/27): answer badly and the merge stays blocked.
 
 ## Contributing
 
@@ -40,14 +40,14 @@ I still think humans > AI any day though.
 
 ## Documentation
 
-Full docs live at **https://bhurghundii.com/grumpy.dev/** (source in [`docs/`](docs/)):
+Full docs live at **https://bhurghundii.com/vibecheck.dev/** (source in [`docs/`](docs/)):
 
-- [Quickstart](https://bhurghundii.com/grumpy.dev/quickstart/): self-host it with Docker Compose
-- [How it works](https://bhurghundii.com/grumpy.dev/how-it-works/)
-- [Wire it into a repo](https://bhurghundii.com/grumpy.dev/wire-it-up/) and [block PRs until they pass](https://bhurghundii.com/grumpy.dev/blocking-prs/)
-- [Configuration](https://bhurghundii.com/grumpy.dev/configuration/)
-- [Deploying to Railway](https://bhurghundii.com/grumpy.dev/deploy-railway/) and the [pre-launch security checklist](https://bhurghundii.com/grumpy.dev/security/)
-- [Local development](https://bhurghundii.com/grumpy.dev/development/) and [limitations](https://bhurghundii.com/grumpy.dev/limitations/)
+- [Quickstart](https://bhurghundii.com/vibecheck.dev/quickstart/): self-host it with Docker Compose
+- [How it works](https://bhurghundii.com/vibecheck.dev/how-it-works/)
+- [Wire it into a repo](https://bhurghundii.com/vibecheck.dev/wire-it-up/) and [block PRs until they pass](https://bhurghundii.com/vibecheck.dev/blocking-prs/)
+- [Configuration](https://bhurghundii.com/vibecheck.dev/configuration/)
+- [Deploying to Railway](https://bhurghundii.com/vibecheck.dev/deploy-railway/) and the [pre-launch security checklist](https://bhurghundii.com/vibecheck.dev/security/)
+- [Local development](https://bhurghundii.com/vibecheck.dev/development/) and [limitations](https://bhurghundii.com/vibecheck.dev/limitations/)
 
 ## License
 MIT

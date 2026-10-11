@@ -26,4 +26,4 @@ jobs:
           # linked below.
 ```
 
-The exact working workflow this repo uses on itself is [`.github/workflows/vibecheck.yml`](https://github.com/bhurghundii/grumpy.dev/blob/main/.github/workflows/vibecheck.yml). You'll need two repo/org secrets: `VIBECHECK_BASE_URL` (your deployment's public URL) and `VIBECHECK_TOKEN` (the same value the server is configured with), plus `GITHUB_STATUS_TOKEN` set on the server.
+The exact working workflow this repo uses on itself is [`.github/workflows/vibecheck.yml`](https://github.com/bhurghundii/vibecheck.dev/blob/main/.github/workflows/vibecheck.yml). You'll need two repo/org secrets: `VIBECHECK_BASE_URL` (your deployment's public URL) and `VIBECHECK_TOKEN` (the same value the server is configured with), plus `GITHUB_STATUS_TOKEN` set on the server.

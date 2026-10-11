@@ -1,8 +1,8 @@
 site_name: vibecheck
 site_description: The AI that vibe checks your PRs
-site_url: https://bhurghundii.com/grumpy.dev/
-repo_url: https://github.com/bhurghundii/grumpy.dev
-repo_name: bhurghundii/grumpy.dev
+site_url: https://bhurghundii.com/vibecheck.dev/
+repo_url: https://github.com/bhurghundii/vibecheck.dev
+repo_name: bhurghundii/vibecheck.dev
 edit_uri: edit/main/docs/
 
 theme:

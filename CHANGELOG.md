@@ -22,8 +22,10 @@
     `docker compose up` starts with an empty database; set `POSTGRES_USER`,
     `POSTGRES_PASSWORD`, `POSTGRES_DB` and move the volume yourself to keep
     local data.
-  - The GitHub repository and docs site keep the `grumpy.dev` address for
-    now.
+  - The GitHub repository is now `bhurghundii/vibecheck.dev`; GitHub
+    redirects the old address. The docs site moved from
+    `bhurghundii.com/grumpy.dev/` to `bhurghundii.com/vibecheck.dev/`, and the
+    old docs address does not redirect.
 
 **Changed**
 
