@@ -29,8 +29,8 @@ The result? More burnout. People just say: "LGTM, CI is green" and now you are s
 
 See it in action on real PRs:
 
-- [Demo 1: Pass a PR](https://github.com/bhurghundii/vibecheck.dev/pull/30): answer well and `vibecheck/verdict` goes green.
-- [Demo 2: Fail a PR](https://github.com/bhurghundii/vibecheck.dev/pull/27): answer badly and the merge stays blocked.
+- [Demo 1: Pass a PR](https://github.com/bhurghundii/vibecheck.dev/pull/53): answer well and `vibecheck/verdict` goes green.
+- [Demo 2: Fail a PR](https://github.com/bhurghundii/vibecheck.dev/pull/54): answer badly and the merge stays blocked.
 
 ## Contributing
 
