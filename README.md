@@ -4,11 +4,13 @@
 https://github.com/user-attachments/assets/497f427e-182e-4446-ac0c-ed6f1ad8ea28
 
 
-**vibecheck is a merge gate for GitHub pull requests. Before a PR can merge, the person who opened it has to show they understand their own change.**
+**vibecheck is a self-hosted merge gate for GitHub pull requests. Before a PR can merge, the person who opened it has to show they understand their own change.**
+
+Self-hosted means you run it yourself: one Docker container plus a Postgres database, on your own server or cloud account. There is no vibecheck cloud service: your PR data stays on infrastructure you control. The one thing that leaves it is the diff text sent to Anthropic's API for grading, using your own API key.
 
 ## What is it?
 
-You run vibecheck on your own server and add one workflow file to your repository. After that, every time someone opens a pull request:
+You run vibecheck on your own server (it is [self-hosted](https://bhurghundii.com/vibecheck.dev/quickstart/), with a Docker image on `ghcr.io/bhurghundii/vibecheck.dev`) and add one workflow file to your repository. After that, every time someone opens a pull request:
 
 1. vibecheck reads the code change and writes a few questions about it. The first is always *"How does this change work on a high level?"*
 2. The author gets a link and answers in plain English, one question at a time, next to the part of the diff it is about.
