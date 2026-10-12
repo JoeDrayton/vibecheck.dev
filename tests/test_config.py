@@ -256,15 +256,18 @@ def test_evaluator_rejects_invalid_config(monkeypatch, raw) -> None:
         get_settings()
 
 
-def _legacy_env(monkeypatch: pytest.MonkeyPatch) -> None:
+def _legacy_env(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
+    # Run from an empty directory so a developer's own .env, which may still
+    # hold the old GRUMPY_* names, cannot leak into these tests.
+    monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("DATABASE_URL", "postgresql://u:p@localhost:5432/db")
     monkeypatch.setenv("FAKE_GRADER", "true")
     for name in ("BASE_URL", "TOKEN", "ALLOWED_REPOS"):
         monkeypatch.delenv(f"VIBECHECK_{name}", raising=False)
 
 
-def test_old_grumpy_env_names_still_configure_the_server(monkeypatch) -> None:
-    _legacy_env(monkeypatch)
+def test_old_grumpy_env_names_still_configure_the_server(monkeypatch, tmp_path) -> None:
+    _legacy_env(monkeypatch, tmp_path)
     token = secrets.token_urlsafe(16)
     monkeypatch.setenv("GRUMPY_BASE_URL", "https://old.example.com")
     monkeypatch.setenv("GRUMPY_TOKEN", token)
@@ -278,8 +281,8 @@ def test_old_grumpy_env_names_still_configure_the_server(monkeypatch) -> None:
     assert not settings.is_repo_allowed("octo/other")
 
 
-def test_vibecheck_env_names_win_over_the_old_ones(monkeypatch) -> None:
-    _legacy_env(monkeypatch)
+def test_vibecheck_env_names_win_over_the_old_ones(monkeypatch, tmp_path) -> None:
+    _legacy_env(monkeypatch, tmp_path)
     new_token = secrets.token_urlsafe(16)
     monkeypatch.setenv("GRUMPY_BASE_URL", "https://old.example.com")
     monkeypatch.setenv("GRUMPY_TOKEN", secrets.token_urlsafe(16))
@@ -292,8 +295,8 @@ def test_vibecheck_env_names_win_over_the_old_ones(monkeypatch) -> None:
     assert settings.vibecheck_token.get_secret_value() == new_token
 
 
-def test_missing_token_is_reported_under_the_new_name(monkeypatch) -> None:
-    _legacy_env(monkeypatch)
+def test_missing_token_is_reported_under_the_new_name(monkeypatch, tmp_path) -> None:
+    _legacy_env(monkeypatch, tmp_path)
     monkeypatch.setenv("VIBECHECK_BASE_URL", "https://new.example.com")
 
     with pytest.raises(SystemExit, match="VIBECHECK_TOKEN"):
