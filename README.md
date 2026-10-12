@@ -4,15 +4,31 @@
 https://github.com/user-attachments/assets/497f427e-182e-4446-ac0c-ed6f1ad8ea28
 
 
-**Vibecheck is a merge gate that checks the author of the PR understands the change they are putting in.**
+**vibecheck is a merge gate for GitHub pull requests. Before a PR can merge, the person who opened it has to show they understand their own change.**
 
-Before a PR can merge, vibecheck asks several questions about the PR (generated using AI.) The first question is always *"How does this change work on a high level?"* and vibecheck will block the PR until they answer technical questions well enough to convince a LLM grader. 
+## What is it?
+
+You run vibecheck on your own server and add one workflow file to your repository. After that, every time someone opens a pull request:
+
+1. vibecheck reads the code change and writes a few questions about it. The first is always *"How does this change work on a high level?"*
+2. The author gets a link and answers in plain English, one question at a time, next to the part of the diff it is about.
+3. An AI grader marks each answer against the actual change. A short but correct answer passes. An answer that contradicts the code fails.
+4. If the author understands the change, the check goes green and the PR can merge. If not, the merge stays blocked.
+
+A one-line PR gets one question. A big PR gets more. It is quick for someone who knows what they wrote, and impossible to wave through for someone who does not.
+
+## Who is it for, and what do you get?
+
+- **Reviewers and maintainers.** You stop receiving huge PRs from people who cannot explain them. The author has already been checked on the basics before you spend an hour reading.
+- **Engineering teams and leads.** Confidence that a person on your team understands every change that ships, even when AI wrote most of it. Use AI to write code faster; vibecheck keeps a human in the loop who knows what it does.
+- **Open source projects.** A cheap filter for drive-by, AI-generated pull requests that nobody has actually read.
+- **Authors.** A fast way to catch a misunderstanding of your own change before a reviewer does.
 
 ## What problem is this solving?
 
-It's far easier to write code than read and understand it. This means that reviewers are often burdened with the task of reviewing massive PRs. 
+It's far easier to write code than read and understand it, and AI has made that gap bigger. Reviewers end up with massive PRs, nobody has the energy to read them closely, and the result is burnout and rubber-stamping: "LGTM, CI is green." Then you are shipping code that nobody understands. For business critical software, that is unacceptable.
 
-The result? More burnout. People just say: "LGTM, CI is green" and now you are shipping code you don't understand! For business critical software, this is unacceptable.
+vibecheck does not review the code for you. It checks that the author understands it, which is the part a green CI cannot tell you.
 
 ## Features (so far)
 
