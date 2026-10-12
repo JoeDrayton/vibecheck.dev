@@ -27,6 +27,7 @@
   button:hover { background: #f0f0f0; }
   .restart { margin-top: 1.5rem; }
   .reward { width: 5rem; height: 5rem; display: block; margin-top: 1.5rem; }
+  .meme { max-width: 20rem; width: 100%; height: auto; display: block; margin-top: 1.5rem; }
   .reward-caption { color: #1a7f37; font-weight: bold; margin-top: 0.5rem; }
 </style>
 </head>
@@ -59,7 +60,12 @@
     <p class="skipped">Same change, fresh questions. You can do this as many times as you like.</p>
   </form>
   {% endif -%}
-  {% if status == "passed" -%}
+  {% if status == "passed" and meme -%}
+  {# MEANIEMODE: the reward is the meme, served from /assets on our own origin
+     (the CSP allows `img-src 'self'` and nothing else). #}
+  <img class="meme" src="/assets/obama-meme.webp" alt="Not bad">
+  <p class="reward-caption">You explained your own change. Off you go.</p>
+  {% elif status == "passed" -%}
   {# Inline SVG, not an <img>. This used to hotlink a copyrighted news-media
      meme from a third-party CDN, which put someone else's image on vibecheck's
      own product surface, made every passing developer's browser call out to

@@ -84,6 +84,9 @@ app = FastAPI(title="vibecheck", lifespan=lifespan, docs_url=None, redoc_url=Non
 app.include_router(web_router)
 
 app.mount("/static", StaticFiles(directory=Path(__file__).resolve().parent / "web" / "static"), name="static")
+# Images that ship with the app (the pass-page meme in MEANIEMODE). Served from
+# our own origin, so the CSP only needs `img-src 'self'`, never a third party.
+app.mount("/assets", StaticFiles(directory=Path(__file__).resolve().parent.parent / "assets"), name="assets")
 
 app.add_middleware(MaxBodySizeMiddleware)
 
@@ -122,7 +125,9 @@ _SECURITY_HEADERS = {
     "Referrer-Policy": "no-referrer",
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
-    "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; script-src 'self'",
+    "Content-Security-Policy": (
+        "default-src 'none'; style-src 'unsafe-inline'; script-src 'self'; img-src 'self'"
+    ),
 }
 
 

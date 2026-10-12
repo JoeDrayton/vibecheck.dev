@@ -28,6 +28,7 @@ RUN uv sync --frozen --no-dev
 
 COPY app ./app
 COPY migrations ./migrations
+COPY assets ./assets
 
 # ---- runtime ----
 FROM python:3.14-slim AS runtime

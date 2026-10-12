@@ -538,5 +538,6 @@ def _render_result(request: Request, session: dict, questions: list[dict], marks
             "total": len(questions),
             "token": session["token"],
             "allow_restart": request.app.state.settings.allow_restart,
+            "meme": request.app.state.settings.meaniemode,
         },
     )

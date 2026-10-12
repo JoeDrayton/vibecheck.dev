@@ -96,8 +96,9 @@ def test_csp_forbids_all_outbound_subresource_requests(vibecheck_env) -> None:
     paste guard (app/web/static/nopaste.js) — which must never grow
     'unsafe-inline', or injected markup could run script.
 
-    img-src previously allowed `https:` solely to permit a hotlinked
-    third-party reward image on the pass page, now an inline SVG.
+    img-src used to allow `https:` solely to permit a hotlinked third-party
+    reward image on the pass page. It is now `'self'`, for the meme that
+    ships in /assets and is shown in MEANIEMODE; nothing off-origin.
     """
     from fastapi.testclient import TestClient
 
@@ -106,8 +107,11 @@ def test_csp_forbids_all_outbound_subresource_requests(vibecheck_env) -> None:
     with TestClient(app) as client:
         csp = client.get("/healthz").headers["content-security-policy"]
 
-    assert csp == "default-src 'none'; style-src 'unsafe-inline'; script-src 'self'"
-    assert "img-src" not in csp
+    assert csp == (
+        "default-src 'none'; style-src 'unsafe-inline'; script-src 'self'; img-src 'self'"
+    )
+    img_src = next(d for d in csp.split(";") if d.strip().startswith("img-src"))
+    assert img_src.strip() == "img-src 'self'"
     assert "connect-src" not in csp
     script_src = next(d for d in csp.split(";") if d.strip().startswith("script-src"))
     assert "'unsafe-inline'" not in script_src
