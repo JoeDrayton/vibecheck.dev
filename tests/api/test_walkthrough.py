@@ -562,6 +562,39 @@ def test_concurrent_submits_for_one_screen_grade_once(vibecheck_env) -> None:
     assert codes == [303, 303]
 
 
+# --- the pass-page meme (MEANIEMODE) --------------------------------------
+
+
+def _passed_page(vibecheck_env) -> str:
+    repo = f"octo/meme-{secrets.token_hex(4)}"
+    with TestClient(app) as client:
+        token = _token_from_url(_create_session(client, vibecheck_env.token, repo=repo)["session_url"])
+        for i in (0, 1, 2):
+            _pass_screen(client, token, i)
+        return client.get(f"/s/{token}").text
+
+
+def test_passed_page_shows_the_tick_not_the_meme_by_default(vibecheck_env) -> None:
+    page = _passed_page(vibecheck_env)
+    assert "PASSED" in page
+    assert "/assets/obama-meme.webp" not in page
+    assert 'class="reward"' in page
+
+
+def test_passed_page_shows_the_meme_in_meaniemode(vibecheck_env, monkeypatch) -> None:
+    monkeypatch.setenv("MEANIEMODE", "true")
+    page = _passed_page(vibecheck_env)
+    assert 'src="/assets/obama-meme.webp"' in page
+    assert 'class="reward"' not in page
+
+
+def test_meme_is_served_from_our_own_origin(vibecheck_env) -> None:
+    with TestClient(app) as client:
+        response = client.get("/assets/obama-meme.webp")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/webp"
+
+
 # --- start over -----------------------------------------------------------
 
 
