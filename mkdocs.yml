@@ -1,5 +1,5 @@
 site_name: vibecheck
-site_description: The AI that vibe checks your PRs
+site_description: Quizzes your team on their AI's code before it merges.
 site_url: https://bhurghundii.com/vibecheck.dev/
 repo_url: https://github.com/bhurghundii/vibecheck.dev
 repo_name: bhurghundii/vibecheck.dev

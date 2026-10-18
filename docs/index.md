@@ -1,6 +1,6 @@
 # vibecheck
 
-The AI that vibe checks your PRs.
+Quizzes your team on their AI's code before it merges.
 
 **Vibecheck is a merge gate that checks the author of the PR understands the change they are putting in.**
 

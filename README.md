@@ -1,4 +1,4 @@
-# vibecheck - the AI that checks whether developers understand their PRs
+# vibecheck - quizzes your team on their AI's code before it merges
 
 https://github.com/user-attachments/assets/497f427e-182e-4446-ac0c-ed6f1ad8ea28
 
