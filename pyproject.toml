@@ -1,7 +1,7 @@
 [project]
 name = "vibecheck"
 version = "0.1.0"
-description = "vibecheck — a merge gate that checks the developer understands the change"
+description = "vibecheck — quizzes your team on their AI's code before it merges"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
