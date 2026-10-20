@@ -4,6 +4,12 @@
 
 **Changed**
 
+- Fork PRs are gated. The workflow now runs on `pull_request_target`
+  instead of `pull_request`, so fork PRs get the secrets and are asked a
+  question like any other PR; before, they were skipped. The diff comes
+  from the GitHub compare API instead of a checkout, so the workflow never
+  runs code from the PR. If you copied the workflow, copy it again, and
+  don't add a checkout of the PR head to it.
 - A diff over `MAX_DIFF_BYTES` is now a `422` rejection that fails the
   `grill` job, not a `413`. The non-blocking job turned the `413` into a
   warning, so the largest PRs were the only ones that skipped grumpy.
