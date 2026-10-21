@@ -17,6 +17,11 @@ After that, when someone opens a pull request:
 3. An AI grader marks each answer against the actual change. You can tune how much detail warrants a pass here.
 4. If the author passes the test, they demonstrate the minimum understanding of their work. The check goes green and the PR can merge. If not, the merge stays blocked. 
 
+## I want this! How can I get this?
+
+This is still pretty early - just book a call with me here: https://calendly.com/bhurghundii/30min and I can sit down with you and we can talk about bringing it into your environment.
+Otherwise, you can contact the [core maintainer](https://github.com/bhurghundii) via the contacts and we can talk about it there.
+
 ## Who is it for, and what do you get?
 
 - **Reviewers and maintainers.** Tired of getting spammed with massive PRs from people who cannot explain them? With this, any author will getchecked on the basics before you spend an hour reading.
